@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -11,8 +11,14 @@ import { AlertCircle, Loader2 } from "lucide-react";
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const { login } = useAuth();
+    const { login, isAuthenticated, isLoading } = useAuth();
     const router = useRouter();
+
+    useEffect(() => {
+        if (!isLoading && isAuthenticated) {
+            router.push("/dashboard");
+        }
+    }, [isAuthenticated, isLoading, router]);
 
     const loginMutation = useMutation({
         mutationFn: async () => {

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 import { AlertCircle, Loader2, Key } from "lucide-react";
 
 export default function RegisterPage() {
@@ -14,6 +15,13 @@ export default function RegisterPage() {
     const [role, setRole] = useState<"BUYER" | "SELLER">("BUYER");
 
     const router = useRouter();
+    const { isAuthenticated, isLoading } = useAuth();
+
+    useEffect(() => {
+        if (!isLoading && isAuthenticated) {
+            router.push("/dashboard");
+        }
+    }, [isAuthenticated, isLoading, router]);
 
     const registerMutation = useMutation({
         mutationFn: async () => {
@@ -110,8 +118,8 @@ export default function RegisterPage() {
                                     disabled={registerMutation.isPending}
                                     onClick={() => setRole("BUYER")}
                                     className={`rounded-lg border px-4 py-2 text-sm font-medium ${role === "BUYER"
-                                            ? "border-transparent bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300"
-                                            : "border-neutral-200 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                                        ? "border-transparent bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300"
+                                        : "border-neutral-200 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
                                         }`}
                                 >
                                     Buyer
@@ -121,8 +129,8 @@ export default function RegisterPage() {
                                     disabled={registerMutation.isPending}
                                     onClick={() => setRole("SELLER")}
                                     className={`rounded-lg border px-4 py-2 text-sm font-medium ${role === "SELLER"
-                                            ? "border-transparent bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300"
-                                            : "border-neutral-200 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                                        ? "border-transparent bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300"
+                                        : "border-neutral-200 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
                                         }`}
                                 >
                                     Seller
