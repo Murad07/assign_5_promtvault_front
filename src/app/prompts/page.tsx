@@ -80,8 +80,8 @@ export default function BrowsePromptsPage() {
                                     key={cat}
                                     onClick={() => setSelectedCategory(cat)}
                                     className={`px-4 py-1.5 text-sm font-medium rounded-md whitespace-nowrap transition-colors ${selectedCategory === cat
-                                            ? "bg-white text-indigo-600 shadow-sm dark:bg-neutral-700 dark:text-indigo-400"
-                                            : "text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+                                        ? "bg-white text-indigo-600 shadow-sm dark:bg-neutral-700 dark:text-indigo-400"
+                                        : "text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
                                         }`}
                                 >
                                     {cat === "ALL" ? "All Categories" : cat}
@@ -139,10 +139,31 @@ export default function BrowsePromptsPage() {
                                 key={prompt.id}
                                 className="group flex flex-col bg-white rounded-2xl border border-neutral-200 shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden dark:bg-neutral-900 dark:border-neutral-800"
                             >
-                                {/* Simulated Preview Skeleton Image placeholder connecting aesthetic vibes */}
-                                <div className="aspect-[4/3] w-full bg-neutral-100 dark:bg-neutral-800 relative flex items-center justify-center overflow-hidden">
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                    <span className="text-4xl">✨</span>
+                                {/* Dynamic Media Preview Rendering */}
+                                <div className="aspect-[4/3] w-full bg-neutral-100 dark:bg-neutral-800 relative flex items-center justify-center overflow-hidden border-b border-neutral-200 dark:border-neutral-800">
+                                    {prompt.outputPreview ? (
+                                        (() => {
+                                            const url = prompt.outputPreview;
+                                            const isImage = /\.(jpeg|jpg|gif|png|webp)$/i.test(url);
+                                            const isVideo = /\.(mp4|webm|ogg)$/i.test(url);
+                                            const isDrive = url.includes("drive.google.com");
+
+                                            if (isImage) {
+                                                return <img src={url} alt={prompt.title} className="object-cover w-full h-full" />;
+                                            } else if (isVideo) {
+                                                return <video src={url} className="object-cover w-full h-full" muted loop playsInline />;
+                                            } else if (isDrive) {
+                                                // Check for view/preview tags to embed iframe safely, otherwise show logo.
+                                                const embedUrl = url.replace('/view', '/preview');
+                                                return <iframe src={embedUrl} className="w-full h-full border-0 pointer-events-none" />;
+                                            } else {
+                                                return <span className="text-4xl">📎</span>;
+                                            }
+                                        })()
+                                    ) : (
+                                        <span className="text-4xl">✨</span>
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 </div>
 
                                 <div className="p-5 flex flex-col flex-1">

@@ -104,20 +104,43 @@ export default function PromptDetailPage() {
                     <div className="lg:col-span-2 space-y-8">
                         <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-sm dark:bg-neutral-900 dark:border-neutral-800">
 
-                            {/* Render an output preview image if URL looks valid, otherwise a gradient block */}
-                            {prompt.outputPreview && prompt.outputPreview.includes("http") ? (
+                            {/* Render dynamic output preview safely handling images, videos, and native Drive links */}
+                            {prompt.outputPreview ? (
                                 <div className="aspect-video w-full relative bg-neutral-100 flex items-center justify-center">
-                                    <img
-                                        src={prompt.outputPreview}
-                                        alt={prompt.title}
-                                        className="object-cover w-full h-full"
-                                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                                    />
+                                    {(() => {
+                                        const url = prompt.outputPreview;
+                                        const isImage = /\.(jpeg|jpg|gif|png|webp)$/i.test(url);
+                                        const isVideo = /\.(mp4|webm|ogg)$/i.test(url);
+                                        const isDrive = url.includes("drive.google.com");
+
+                                        if (isImage) {
+                                            return <img src={url} alt={prompt.title} className="object-contain w-full h-full" />;
+                                        } else if (isVideo) {
+                                            return <video src={url} className="object-contain w-full h-full" controls muted loop playsInline />;
+                                        } else if (isDrive) {
+                                            // Format link for iframe rendering replacing trailing /view with /preview
+                                            const embedUrl = url.replace(/\/view(\?usp=sharing)?$/, '/preview');
+                                            return (
+                                                <div className="w-full h-full relative">
+                                                    <iframe src={embedUrl} className="w-full h-full border-0 absolute inset-0" allow="autoplay" />
+                                                    <a href={url} target="_blank" rel="noopener noreferrer" className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white backdrop-blur-md px-4 py-2 rounded-full text-xs font-semibold shadow-lg transition-colors">
+                                                        Open Drive Link
+                                                    </a>
+                                                </div>
+                                            );
+                                        } else {
+                                            return (
+                                                <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 px-6 py-3 rounded-xl font-bold hover:bg-indigo-200 transition-colors">
+                                                    📎 View Attached External Asset
+                                                </a>
+                                            );
+                                        }
+                                    })()}
                                 </div>
                             ) : (
                                 <div className="aspect-video w-full bg-gradient-to-tr from-indigo-500/20 to-cyan-500/20 flex items-center justify-center border-b border-neutral-200 dark:border-neutral-800">
-                                    <span className="text-4xl px-4 py-2 bg-white/50 backdrop-blur-sm rounded-xl font-bold text-indigo-700 dark:bg-black/50 dark:text-indigo-400">
-                                        Preview Block
+                                    <span className="text-xl px-4 py-2 bg-white/50 backdrop-blur-sm rounded-xl font-bold text-indigo-700 dark:bg-black/50 dark:text-indigo-400">
+                                        No preview available
                                     </span>
                                 </div>
                             )}
@@ -216,8 +239,8 @@ export default function PromptDetailPage() {
                                 onClick={handleAddToCart}
                                 disabled={inCart}
                                 className={`w-full flex items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-bold shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 ${inCart
-                                        ? "bg-neutral-100 text-neutral-500 cursor-not-allowed dark:bg-neutral-800 dark:text-neutral-400"
-                                        : "bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-md focus:ring-indigo-500"
+                                    ? "bg-neutral-100 text-neutral-500 cursor-not-allowed dark:bg-neutral-800 dark:text-neutral-400"
+                                    : "bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-md focus:ring-indigo-500"
                                     }`}
                             >
                                 <ShoppingCart size={18} />
