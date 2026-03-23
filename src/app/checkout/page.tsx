@@ -37,7 +37,8 @@ function CheckoutForm({ clientSecret }: { clientSecret: string }) {
         } else if (paymentIntent && paymentIntent.status === "succeeded") {
             // STEP 2: STRIKE COMPLETED SAFELY -> Trigger API securely mapping Order natively
             try {
-                const payload = { items: cart.map(item => ({ promptId: item.id })) };
+                // Backend explicitly maps req.body.promptIds locally
+                const payload = { promptIds: cart.map(item => item.id) };
                 await fetchWithAuth("/orders", {
                     method: "POST",
                     body: JSON.stringify(payload)
