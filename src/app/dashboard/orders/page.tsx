@@ -1,14 +1,19 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/api";
 import { useState } from "react";
-import { Copy, ShoppingBag, Eye, X, Loader2, CheckCircle2 } from "lucide-react";
+import { Copy, ShoppingBag, Eye, X, Loader2, CheckCircle2, Star, MessageSquare } from "lucide-react";
 
 export default function OrdersDashboard() {
     const { user } = useAuth();
+    const queryClient = useQueryClient();
     const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+    const [reviewingPrompt, setReviewingPrompt] = useState<string | null>(null);
+    const [rating, setRating] = useState(5);
+    const [comment, setComment] = useState("");
+    const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error", text: string } | null>(null);
 
     const endpoint = user?.role === "ADMIN" ? "/orders" : "/orders/my-orders";
 
@@ -20,11 +25,46 @@ export default function OrdersDashboard() {
 
     const closeModal = () => {
         setSelectedOrder(null);
+        setReviewingPrompt(null);
+        setStatusMessage(null);
     };
 
     const handleCopySecret = (secret: string) => {
         navigator.clipboard.writeText(secret);
         alert("Secret prompt copied to clipboard!");
+    };
+
+    const reviewMutation = useMutation({
+        mutationFn: async (payload: any) => {
+            return await fetchWithAuth("/reviews", {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+        },
+        onSuccess: () => {
+            setStatusMessage({ type: "success", text: "Your review was successfully published!" });
+            queryClient.invalidateQueries({ queryKey: ["dashboard-orders"] });
+
+            // Auto close professional inline success message after rendering momentarily
+            setTimeout(() => {
+                setReviewingPrompt(null);
+                setRating(5);
+                setComment("");
+                setStatusMessage(null);
+            }, 2000);
+        },
+        onError: (err: any) => {
+            setStatusMessage({ type: "error", text: err.message || "Failed to publish review natively." });
+        }
+    });
+
+    const submitReview = (promptId: string) => {
+        if (!comment.trim()) {
+            setStatusMessage({ type: "error", text: "Please provide a written comment alongside your valid stars." });
+            return;
+        }
+        setStatusMessage(null);
+        reviewMutation.mutate({ promptId, rating, comment });
     };
 
     if (!user) return null;
@@ -170,22 +210,81 @@ export default function OrdersDashboard() {
 
                                             {/* Display secret prompt if available */}
                                             {item.prompt?.secretPrompt && (
-                                                <div className="mt-4 rounded-md bg-indigo-50 border border-indigo-100 p-3 dark:bg-indigo-950/20 dark:border-indigo-900/50">
-                                                    <div className="flex items-center justify-between mb-2">
+                                                <div className="mt-4 rounded-md bg-indigo-50 border border-indigo-100 p-4 dark:bg-indigo-950/20 dark:border-indigo-900/50">
+                                                    <div className="flex items-center justify-between mb-3 border-b border-indigo-100 dark:border-indigo-900/50 pb-2">
                                                         <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-400 flex items-center gap-1">
                                                             <CheckCircle2 size={14} /> Secret Prompt Unlocked
                                                         </span>
-                                                        <button
-                                                            onClick={() => handleCopySecret(item.prompt.secretPrompt)}
-                                                            className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 flex items-center gap-1 text-xs"
-                                                            title="Copy to clipboard"
-                                                        >
-                                                            <Copy size={14} /> Copy
-                                                        </button>
+                                                        <div className="flex items-center gap-2 relative">
+                                                            <button
+                                                                onClick={() => setReviewingPrompt(reviewingPrompt === item.prompt.id ? null : item.prompt.id)}
+                                                                className="text-neutral-500 hover:text-amber-500 dark:text-neutral-400 dark:hover:text-amber-400 flex items-center gap-1 text-xs"
+                                                            >
+                                                                <Star size={14} /> Leave Review
+                                                            </button>
+                                                            <span className="text-neutral-300 dark:text-neutral-700">|</span>
+                                                            <button
+                                                                onClick={() => handleCopySecret(item.prompt.secretPrompt)}
+                                                                className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 flex items-center gap-1 text-xs"
+                                                            >
+                                                                <Copy size={14} /> Copy
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                     <p className="text-sm font-mono text-neutral-800 dark:text-neutral-300 break-words whitespace-pre-wrap selection:bg-indigo-200 dark:selection:bg-indigo-900">
                                                         {item.prompt.secretPrompt}
                                                     </p>
+
+                                                    {/* Inline Review Form expansion natively scoped per-item */}
+                                                    {reviewingPrompt === item.prompt.id && (
+                                                        <div className="mt-4 pt-4 border-t border-indigo-100 dark:border-indigo-900/50 animate-in fade-in slide-in-from-top-2">
+                                                            <h5 className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                                                                <MessageSquare size={14} /> Write your review
+                                                            </h5>
+                                                            <div className="flex gap-1 mb-3">
+                                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                                    <button
+                                                                        key={star}
+                                                                        onClick={() => setRating(star)}
+                                                                        className="focus:outline-none focus:scale-110 transition-transform"
+                                                                    >
+                                                                        <Star size={20} className={star <= rating ? "fill-amber-400 text-amber-400" : "text-neutral-300 dark:text-neutral-600"} />
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                            <textarea
+                                                                value={comment}
+                                                                onChange={(e) => setComment(e.target.value)}
+                                                                placeholder="How did this setup work for you?"
+                                                                rows={3}
+                                                                className="w-full text-sm rounded-lg border border-neutral-300 p-3 focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-neutral-900 dark:border-neutral-700 dark:text-white dark:focus:ring-indigo-800 mb-3"
+                                                            />
+                                                            <div className="flex justify-between items-center gap-2">
+                                                                <div className="flex-1">
+                                                                    {statusMessage && (
+                                                                        <span className={`text-xs font-semibold flex items-center gap-1 ${statusMessage.type === "success" ? "text-emerald-500" : "text-red-500"
+                                                                            }`}>
+                                                                            {statusMessage.type === "success" && <CheckCircle2 size={12} />}
+                                                                            {statusMessage.text}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex gap-2 shrink-0">
+                                                                    <button onClick={() => { setReviewingPrompt(null); setStatusMessage(null); }} className="px-3 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-100 rounded-lg dark:text-neutral-400 dark:hover:bg-neutral-800">
+                                                                        Cancel
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => submitReview(item.prompt.id)}
+                                                                        disabled={reviewMutation.isPending || statusMessage?.type === "success"}
+                                                                        className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-1"
+                                                                    >
+                                                                        {reviewMutation.isPending && <Loader2 size={12} className="animate-spin" />}
+                                                                        Publish Review
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
