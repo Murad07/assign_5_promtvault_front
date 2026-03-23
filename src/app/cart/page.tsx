@@ -13,26 +13,6 @@ export default function CartPage() {
     const { isAuthenticated, user } = useAuth();
     const router = useRouter();
 
-    const checkoutMutation = useMutation({
-        mutationFn: async () => {
-            const payload = {
-                items: cart.map(item => ({ promptId: item.id }))
-            };
-
-            return await fetchWithAuth("/orders", {
-                method: "POST",
-                body: JSON.stringify(payload),
-            });
-        },
-        onSuccess: () => {
-            clearCart();
-            // Redirect to buyer's order history dashboard where they can see their new secret prompts!
-            router.push("/dashboard/orders?checkout=success");
-        },
-        onError: (err: any) => {
-            alert(err.message || "Checkout failed. Please try again.");
-        }
-    });
 
     const handleCheckout = () => {
         if (!isAuthenticated) {
@@ -45,7 +25,8 @@ export default function CartPage() {
             return;
         }
 
-        checkoutMutation.mutate();
+        // Push to Secure Stripe Checkout natively
+        router.push("/checkout");
     };
 
     return (
@@ -140,15 +121,11 @@ export default function CartPage() {
 
                                 <button
                                     onClick={handleCheckout}
-                                    disabled={checkoutMutation.isPending || cart.length === 0}
+                                    disabled={cart.length === 0}
                                     className="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 dark:focus:ring-offset-neutral-900"
                                 >
-                                    {checkoutMutation.isPending ? (
-                                        <Loader2 className="animate-spin" size={18} />
-                                    ) : (
-                                        <CreditCard size={18} />
-                                    )}
-                                    {checkoutMutation.isPending ? "Processing..." : "Secure Checkout"}
+                                    <CreditCard size={18} />
+                                    Secure Stripe Checkout
                                 </button>
 
                                 <div className="mt-6 space-y-3">
