@@ -53,16 +53,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         if (user.role === "SELLER") {
             return [
                 ...baseLinks,
-                { name: "My Prompts", href: "/dashboard/prompts", icon: FileCode2 },
-                { name: "Sales History", href: "/dashboard/sales", icon: History },
+                { name: "My Native Prompts", href: "/dashboard/prompts", icon: FileCode2 },
             ];
         }
 
         if (user.role === "BUYER") {
             return [
                 ...baseLinks,
-                { name: "Purchased Prompts", href: "/dashboard/purchases", icon: FileCode2 },
-                { name: "Order History", href: "/dashboard/orders", icon: History },
+                { name: "Orders & Purchases", href: "/dashboard/orders", icon: History },
             ];
         }
 
@@ -110,14 +108,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                     href={item.href}
                                     onClick={() => setIsMobileOpen(false)}
                                     className={`group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${isActive
-                                            ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"
-                                            : "text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800/50"
+                                        ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"
+                                        : "text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800/50"
                                         }`}
                                 >
                                     <Icon
                                         className={`mr-3 h-5 w-5 flex-shrink-0 ${isActive
-                                                ? "text-indigo-600 dark:text-indigo-400"
-                                                : "text-neutral-400 group-hover:text-neutral-500 dark:text-neutral-500"
+                                            ? "text-indigo-600 dark:text-indigo-400"
+                                            : "text-neutral-400 group-hover:text-neutral-500 dark:text-neutral-500"
                                             }`}
                                     />
                                     {item.name}
