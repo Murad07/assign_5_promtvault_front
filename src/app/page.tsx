@@ -1,7 +1,16 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Search, Code, Image as ImageIcon, Briefcase, Star } from "lucide-react";
+import { ArrowRight, CheckCircle2, Search, Code, Image as ImageIcon, Briefcase, Star, TrendingUp } from "lucide-react";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+  let latestPrompts = [];
+  try {
+    const res = await fetch(`${API_URL}/prompts`, { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      latestPrompts = data.data.slice(0, 10);
+    }
+  } catch (e) { }
   return (
     <div className="flex flex-col">
       {/* 1. HERO SECTION */}
@@ -35,6 +44,102 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* 1.5 LATEST PROMPTS DYNAMIC SCROLL CAROUSEL */}
+      {latestPrompts.length > 0 && (
+        <section className="bg-neutral-50 px-4 py-16 sm:px-6 lg:px-8 dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800">
+          <div className="mx-auto max-w-7xl">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+                Trending Next-Gen Prompts
+              </h2>
+              <Link href="/prompts" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline flex items-center gap-1">
+                Explore Marketplace <ArrowRight size={16} />
+              </Link>
+            </div>
+
+            <div className="flex overflow-x-auto gap-6 pb-8 snap-x snap-mandatory">
+              {latestPrompts.map((prompt: any) => (
+                <Link
+                  href={`/prompts/${prompt.id}`}
+                  key={prompt.id}
+                  className="snap-start shrink-0 w-80 group flex flex-col bg-white rounded-2xl border border-neutral-200 shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden dark:bg-neutral-900 dark:border-neutral-800"
+                >
+                  <div className="aspect-[4/3] w-full bg-neutral-100 dark:bg-neutral-800 relative flex items-center justify-center overflow-hidden border-b border-neutral-200 dark:border-neutral-800">
+                    {prompt.outputPreview ? (
+                      (() => {
+                        const url = prompt.outputPreview;
+                        const isImage = /\.(jpeg|jpg|gif|png|webp)$/i.test(url);
+                        const isVideo = /\.(mp4|webm|ogg)$/i.test(url);
+                        const isDrive = url.includes("drive.google.com");
+
+                        if (isImage) {
+                          return <img src={url} alt={prompt.title} className="object-cover w-full h-full" />;
+                        } else if (isVideo) {
+                          return <video src={url} className="object-cover w-full h-full" muted loop playsInline />;
+                        } else if (isDrive) {
+                          const embedUrl = url.replace('/view', '/preview');
+                          return <iframe src={embedUrl} className="w-full h-full border-0 pointer-events-none" />;
+                        } else {
+                          return <span className="text-4xl">📎</span>;
+                        }
+                      })()
+                    ) : (
+                      <span className="text-4xl">✨</span>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+
+                  <div className="p-5 flex flex-col flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded-md">
+                          {prompt.category}
+                        </span>
+                        {(() => {
+                          if (prompt.reviews && prompt.reviews.length > 0) {
+                            const avg = (prompt.reviews.reduce((a: any, c: any) => a + c.rating, 0) / prompt.reviews.length).toFixed(1);
+                            return (
+                              <span className="flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-1 rounded">
+                                <Star size={12} className="fill-amber-500 text-amber-500" /> {avg}
+                              </span>
+                            );
+                          }
+                        })()}
+                      </div>
+                      <span className="font-bold text-lg text-emerald-600 dark:text-emerald-400">
+                        ${prompt.price.toFixed(2)}
+                      </span>
+                    </div>
+
+                    <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2 line-clamp-1 group-hover:text-indigo-600 transition-colors">
+                      {prompt.title}
+                    </h3>
+
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400 line-clamp-2 mb-4">
+                      {prompt.description}
+                    </p>
+
+                    <div className="mt-auto pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+                      <span className="text-xs text-neutral-500 truncate mr-2">
+                        By <span className="font-medium text-neutral-700 dark:text-neutral-300">{prompt.seller?.name || "Verified Seller"}</span>
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {prompt._count?.orderItems !== undefined && prompt._count.orderItems > 0 && (
+                          <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-md flex items-center gap-1">
+                            <TrendingUp size={12} /> {prompt._count.orderItems} Sales
+                          </span>
+                        )}
+                        <ArrowRight className="h-4 w-4 text-neutral-300 group-hover:text-indigo-600 transition-colors dark:group-hover:text-indigo-400 shrink-0" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 2. HOW IT WORKS / FEATURES SECTION */}
       <section className="bg-white px-4 py-24 sm:px-6 lg:px-8 dark:bg-neutral-900">
