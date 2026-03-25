@@ -203,16 +203,26 @@ export default function OrdersDashboard() {
                                         <div key={item.id} className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
                                             <div className="flex gap-4 items-center mb-2">
                                                 {item.prompt?.outputPreview && (
-                                                    <div className="h-16 w-16 shrink-0 rounded-md overflow-hidden bg-neutral-100 dark:bg-neutral-800">
-                                                        {item.prompt.outputPreview.match(/\.(jpeg|jpg|gif|png)$/) != null || true ? (
-                                                            <img
-                                                                src={item.prompt.outputPreview}
-                                                                alt={item.prompt.title || "Preview"}
-                                                                className="h-full w-full object-cover border border-neutral-200 dark:border-neutral-800"
-                                                            />
-                                                        ) : (
-                                                            <div className="flex h-full items-center justify-center text-xs text-neutral-400">Media</div>
-                                                        )}
+                                                    <div className="h-16 w-16 shrink-0 rounded-md overflow-hidden bg-neutral-100 dark:bg-neutral-800 relative flex items-center justify-center">
+                                                        {(() => {
+                                                            const url = item.prompt.outputPreview;
+                                                            const isImage = /\.(jpeg|jpg|gif|png|webp)$/i.test(url);
+                                                            const isVideo = /\.(mp4|webm|ogg)$/i.test(url);
+                                                            const isDrive = url.includes("drive.google.com");
+
+                                                            if (isImage) {
+                                                                return <img src={url} alt={item.prompt.title || "Preview"} className="h-full w-full object-cover border border-neutral-200 dark:border-neutral-800" />;
+                                                            } else if (isVideo) {
+                                                                return <video src={url} className="h-full w-full object-cover border border-neutral-200 dark:border-neutral-800" muted loop playsInline />;
+                                                            } else if (isDrive) {
+                                                                // Convert specific Native Google Drive share URLs safely mapping preview natively.
+                                                                const embedUrl = url.replace('/view', '/preview');
+                                                                return <iframe src={embedUrl} className="h-full w-full border-0 pointer-events-none scale-150 transform" />;
+                                                            } else {
+                                                                // Generic HTTP Image structural fallback
+                                                                return <img src={url} alt={item.prompt.title || "Media"} className="h-full w-full object-cover" onError={(e) => { (e.target as any).style.display = 'none'; }} />;
+                                                            }
+                                                        })()}
                                                     </div>
                                                 )}
                                                 <div>
