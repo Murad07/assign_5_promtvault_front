@@ -104,7 +104,7 @@ export default function DashboardOverviewPage() {
                                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                 ))}
                                             </Pie>
-                                            <Tooltip formatter={(value) => [`${value} Users`, "Count"]} contentStyle={{ borderRadius: "12px", border: "1px solid #e5e5e5" }} />
+                                            <Tooltip formatter={(value: any) => [`${value} Users`, "Count"]} contentStyle={{ borderRadius: "12px", border: "1px solid #e5e5e5" }} />
                                             <Legend />
                                         </PieChart>
                                     </ResponsiveContainer>
@@ -125,7 +125,7 @@ export default function DashboardOverviewPage() {
                                                     <Cell key={`cell-${index}`} fill={COLORS[(index + 1) % COLORS.length]} />
                                                 ))}
                                             </Pie>
-                                            <Tooltip formatter={(value: number) => [`$${value.toFixed(2)}`, "Revenue"]} contentStyle={{ borderRadius: "12px", border: "1px solid #e5e5e5" }} />
+                                            <Tooltip formatter={(value: any) => [`$${Number(value).toFixed(2)}`, "Revenue"]} contentStyle={{ borderRadius: "12px", border: "1px solid #e5e5e5" }} />
                                             <Legend />
                                         </PieChart>
                                     </ResponsiveContainer>
