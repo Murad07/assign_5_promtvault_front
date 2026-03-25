@@ -3,14 +3,27 @@ import { ArrowRight, CheckCircle2, Search, Code, Image as ImageIcon, Briefcase, 
 
 export default async function HomePage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-  let latestPrompts = [];
+  let allPrompts = [];
   try {
     const res = await fetch(`${API_URL}/prompts`, { cache: 'no-store' });
     if (res.ok) {
       const data = await res.json();
-      latestPrompts = data.data.slice(0, 10);
+      allPrompts = data.data || [];
     }
   } catch (e) { }
+
+  const latestPrompts = allPrompts.slice(0, 10);
+
+  const categoryStats = [
+    { name: "IMAGES", label: "Midjourney Images", icon: ImageIcon, color: "text-blue-500", bg: "bg-blue-500/10" },
+    { name: "CODING", label: "Software Engineering", icon: Code, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+    { name: "MARKETING", label: "SEO & Marketing", icon: Search, color: "text-purple-500", bg: "bg-purple-500/10" },
+    { name: "WRITING", label: "Business Strategy", icon: Briefcase, color: "text-orange-500", bg: "bg-orange-500/10" }
+  ].map((cat) => ({
+    ...cat,
+    count: allPrompts.filter((p: any) => p.category === cat.name).length
+  }));
+
   return (
     <div className="flex flex-col">
       {/* 1. HERO SECTION */}
@@ -186,18 +199,13 @@ export default async function HomePage() {
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { name: "Midjourney Images", icon: ImageIcon, count: "2,400+ Prompts", color: "text-blue-500", bg: "bg-blue-500/10" },
-              { name: "Software Engineering", icon: Code, count: "1,200+ Prompts", color: "text-emerald-500", bg: "bg-emerald-500/10" },
-              { name: "SEO & Marketing", icon: Search, count: "850+ Prompts", color: "text-purple-500", bg: "bg-purple-500/10" },
-              { name: "Business Strategy", icon: Briefcase, count: "640+ Prompts", color: "text-orange-500", bg: "bg-orange-500/10" }
-            ].map((cat, idx) => (
+            {categoryStats.map((cat, idx) => (
               <Link key={idx} href={`/prompts?category=${cat.name}`} className="group flex flex-col rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition-all hover:border-indigo-500 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-indigo-500">
                 <div className={`inline-flex h-12 w-12 items-center justify-center rounded-lg ${cat.bg} ${cat.color} mb-4`}>
                   <cat.icon size={24} />
                 </div>
-                <h3 className="text-lg font-bold text-neutral-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{cat.name}</h3>
-                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{cat.count}</p>
+                <h3 className="text-lg font-bold text-neutral-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{cat.label}</h3>
+                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{cat.count} Prompts</p>
               </Link>
             ))}
           </div>

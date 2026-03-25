@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Loader2, Search, Filter, ArrowRight, PackageOpen, Star, TrendingUp } from "lucide-react";
 
 // Assuming public fetch since GET /prompts is globally exposed
@@ -16,14 +17,17 @@ const fetchPublicPrompts = async () => {
     return res.json();
 };
 
-export default function BrowsePromptsPage() {
+function PromptsInner() {
+    const searchParams = useSearchParams();
+    const queryCat = searchParams.get("category");
+
     const { data, isLoading, isError } = useQuery({
         queryKey: ["public-prompts"],
         queryFn: fetchPublicPrompts,
     });
 
     const [searchQuery, setSearchQuery] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
+    const [selectedCategory, setSelectedCategory] = useState<string>(queryCat || "ALL");
     const [sortOrder, setSortOrder] = useState<"NEWEST" | "PRICE_ASC" | "PRICE_DESC">("NEWEST");
 
     const categories = ["ALL", "IMAGES", "MARKETING", "CODING", "WRITING"];
@@ -216,5 +220,13 @@ export default function BrowsePromptsPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function BrowsePromptsPage() {
+    return (
+        <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-indigo-600" /></div>}>
+            <PromptsInner />
+        </Suspense>
     );
 }
