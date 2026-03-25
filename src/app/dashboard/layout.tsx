@@ -88,14 +88,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
                 <div className="flex h-full flex-col">
                     {/* Sidebar Header */}
-                    <div className="flex h-16 shrink-0 items-center border-b border-neutral-200 px-6 dark:border-neutral-800">
+                    <Link href="/" className="flex h-16 shrink-0 items-center border-b border-neutral-200 px-6 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors">
                         <span className="text-xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400">
                             PromptVault
                         </span>
                         <span className="ml-2 rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300">
                             {user.role}
                         </span>
-                    </div>
+                    </Link>
 
                     {/* Navigation */}
                     <nav className="flex-1 space-y-1 overflow-y-auto p-4">
