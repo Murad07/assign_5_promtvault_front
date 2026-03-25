@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { LogIn, UserPlus, FileCode2, ShoppingCart } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import { LogIn, UserPlus, ShoppingCart } from "lucide-react";
 
 export default function Navbar() {
     const pathname = usePathname();
-    const { user, isAuthenticated, logout } = useAuth();
+    const { user, isAuthenticated } = useAuth();
+    const { cart } = useCart();
 
     // Do not render the public Navbar inside the Dashboard route
     if (pathname?.startsWith("/dashboard")) {
@@ -36,11 +38,16 @@ export default function Navbar() {
                 <div className="flex items-center gap-4">
                     {isAuthenticated ? (
                         <>
-                            {user?.role === "BUYER" && (
-                                <Link href="/cart" className="hidden sm:flex text-neutral-600 hover:text-indigo-600 dark:text-neutral-300 transition-colors relative">
-                                    <ShoppingCart size={20} />
+                            {user?.role === "BUYER" || !isAuthenticated ? (
+                                <Link href="/cart" className="flex items-center text-neutral-600 hover:text-indigo-600 dark:text-neutral-300 transition-colors relative mr-4">
+                                    <ShoppingCart size={22} />
+                                    {cart.length > 0 && (
+                                        <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-neutral-950">
+                                            {cart.length}
+                                        </span>
+                                    )}
                                 </Link>
-                            )}
+                            ) : null}
                             <Link
                                 href="/dashboard"
                                 className="flex items-center gap-2 rounded-full border border-neutral-200 px-4 py-1.5 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
