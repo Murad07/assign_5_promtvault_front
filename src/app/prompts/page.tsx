@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { Loader2, Search, Filter, ArrowRight, PackageOpen } from "lucide-react";
+import { Loader2, Search, Filter, ArrowRight, PackageOpen, Star } from "lucide-react";
 
 // Assuming public fetch since GET /prompts is globally exposed
 const fetchPublicPrompts = async () => {
@@ -168,9 +168,21 @@ export default function BrowsePromptsPage() {
 
                                 <div className="p-5 flex flex-col flex-1">
                                     <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded-md">
-                                            {prompt.category}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded-md">
+                                                {prompt.category}
+                                            </span>
+                                            {(() => {
+                                                if (prompt.reviews && prompt.reviews.length > 0) {
+                                                    const avg = (prompt.reviews.reduce((a: any, c: any) => a + c.rating, 0) / prompt.reviews.length).toFixed(1);
+                                                    return (
+                                                        <span className="flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-1 rounded">
+                                                            <Star size={12} className="fill-amber-500 text-amber-500" /> {avg}
+                                                        </span>
+                                                    );
+                                                }
+                                            })()}
+                                        </div>
                                         <span className="font-bold text-lg text-emerald-600 dark:text-emerald-400">
                                             ${prompt.price.toFixed(2)}
                                         </span>
