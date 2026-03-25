@@ -201,10 +201,23 @@ export default function OrdersDashboard() {
                                 <div className="space-y-4">
                                     {selectedOrder.items?.map((item: any) => (
                                         <div key={item.id} className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
-                                            <div className="flex justify-between items-start mb-2">
+                                            <div className="flex gap-4 items-center mb-2">
+                                                {item.prompt?.outputPreview && (
+                                                    <div className="h-16 w-16 shrink-0 rounded-md overflow-hidden bg-neutral-100 dark:bg-neutral-800">
+                                                        {item.prompt.outputPreview.match(/\.(jpeg|jpg|gif|png)$/) != null || true ? (
+                                                            <img
+                                                                src={item.prompt.outputPreview}
+                                                                alt={item.prompt.title || "Preview"}
+                                                                className="h-full w-full object-cover border border-neutral-200 dark:border-neutral-800"
+                                                            />
+                                                        ) : (
+                                                            <div className="flex h-full items-center justify-center text-xs text-neutral-400">Media</div>
+                                                        )}
+                                                    </div>
+                                                )}
                                                 <div>
                                                     <h4 className="font-medium text-neutral-900 dark:text-white">{item.prompt?.title}</h4>
-                                                    <p className="text-xs text-neutral-500">Price: ${item.price.toFixed(2)}</p>
+                                                    <p className="text-xs text-neutral-500 mt-1">Price: ${item.price.toFixed(2)}</p>
                                                 </div>
                                             </div>
 
