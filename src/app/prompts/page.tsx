@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { Loader2, Search, Filter, ArrowRight, PackageOpen, Star } from "lucide-react";
+import { Loader2, Search, Filter, ArrowRight, PackageOpen, Star, TrendingUp } from "lucide-react";
 
 // Assuming public fetch since GET /prompts is globally exposed
 const fetchPublicPrompts = async () => {
@@ -197,10 +197,17 @@ export default function BrowsePromptsPage() {
                                     </p>
 
                                     <div className="mt-auto pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
-                                        <span className="text-xs text-neutral-500">
+                                        <span className="text-xs text-neutral-500 truncate mr-2">
                                             By <span className="font-medium text-neutral-700 dark:text-neutral-300">{prompt.seller?.name || "Verified Seller"}</span>
                                         </span>
-                                        <ArrowRight className="h-4 w-4 text-neutral-300 group-hover:text-indigo-600 transition-colors dark:group-hover:text-indigo-400" />
+                                        <div className="flex items-center gap-2">
+                                            {prompt._count?.orderItems !== undefined && prompt._count.orderItems > 0 && (
+                                                <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-md flex items-center gap-1">
+                                                    <TrendingUp size={12} /> {prompt._count.orderItems} Sales
+                                                </span>
+                                            )}
+                                            <ArrowRight className="h-4 w-4 text-neutral-300 group-hover:text-indigo-600 transition-colors dark:group-hover:text-indigo-400 shrink-0" />
+                                        </div>
                                     </div>
                                 </div>
                             </Link>
