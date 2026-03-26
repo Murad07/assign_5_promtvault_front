@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
-import { ArrowLeft, Loader2, Star, CheckCircle2, ShoppingCart, User } from "lucide-react";
+import { ArrowLeft, Loader2, Star, CheckCircle2, ShoppingCart, User, TrendingUp, ArrowRight } from "lucide-react";
 
 // Native fetch to Public `/prompts/:id` and `/reviews/:id`
 const fetchPromptDetails = async (id: string) => {
@@ -19,6 +19,13 @@ const fetchPromptReviews = async (id: string) => {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
     const res = await fetch(`${API_URL}/reviews/${id}`);
     if (!res.ok) throw new Error("Failed to fetch reviews");
+    return res.json();
+};
+
+const fetchRelatedPrompts = async () => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+    const res = await fetch(`${API_URL}/prompts`);
+    if (!res.ok) throw new Error("Failed to fetch all prompts");
     return res.json();
 };
 
@@ -39,6 +46,12 @@ export default function PromptDetailPage() {
     const { data: reviewsData, isLoading: reviewsLoading } = useQuery({
         queryKey: ["reviews", promptId],
         queryFn: () => fetchPromptReviews(promptId),
+    });
+
+    const { data: allPromptsData } = useQuery({
+        queryKey: ["public-prompts"],
+        queryFn: fetchRelatedPrompts,
+        enabled: !!promptData?.data
     });
 
     if (promptLoading) {
@@ -64,6 +77,7 @@ export default function PromptDetailPage() {
 
     const prompt = promptData.data;
     const reviews = reviewsData?.data || [];
+    const relatedPrompts = allPromptsData?.data?.filter((p: any) => p.category === prompt.category && p.id !== prompt.id).slice(0, 3) || [];
 
     // Check if item already in cart
     const inCart = cart.some(item => item.id === prompt.id);
@@ -257,6 +271,73 @@ export default function PromptDetailPage() {
 
                 </div>
             </div>
+
+            {/* Related Prompts Section */}
+            {relatedPrompts.length > 0 && (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+                    <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-8 capitalize">
+                        More from {prompt.category.toLowerCase()}
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {relatedPrompts.map((related: any) => (
+                            <Link
+                                href={`/prompts/${related.id}`}
+                                key={related.id}
+                                className="group flex flex-col bg-white rounded-2xl border border-neutral-200 shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden dark:bg-neutral-900 dark:border-neutral-800"
+                            >
+                                <div className="aspect-[4/3] w-full bg-neutral-100 dark:bg-neutral-800 relative flex items-center justify-center overflow-hidden border-b border-neutral-200 dark:border-neutral-800">
+                                    {related.outputPreview ? (
+                                        (() => {
+                                            const url = related.outputPreview;
+                                            const isImage = /\.(jpeg|jpg|gif|png|webp)$/i.test(url);
+                                            const isVideo = /\.(mp4|webm|ogg)$/i.test(url);
+                                            const isDrive = url.includes("drive.google.com");
+
+                                            if (isImage) {
+                                                return <img src={url} alt={related.title} className="object-cover w-full h-full" />;
+                                            } else if (isVideo) {
+                                                return <video src={url} className="object-cover w-full h-full" muted loop playsInline />;
+                                            } else if (isDrive) {
+                                                const embedUrl = url.replace(/\/view(\?usp=sharing)?$/, '/preview');
+                                                return <iframe src={embedUrl} className="w-full h-full border-0 pointer-events-none" />;
+                                            } else {
+                                                return <span className="text-4xl">📎</span>;
+                                            }
+                                        })()
+                                    ) : (
+                                        <span className="text-4xl">✨</span>
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                </div>
+
+                                <div className="p-5 flex flex-col flex-1">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded-md">
+                                                {related.category}
+                                            </span>
+                                        </div>
+                                        <span className="font-bold text-lg text-emerald-600 dark:text-emerald-400">
+                                            ${related.price.toFixed(2)}
+                                        </span>
+                                    </div>
+
+                                    <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2 line-clamp-1 group-hover:text-indigo-600 transition-colors">
+                                        {related.title}
+                                    </h3>
+
+                                    <div className="mt-auto pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+                                        <span className="text-xs text-neutral-500 truncate mr-2">
+                                            By <span className="font-medium text-neutral-700 dark:text-neutral-300">{related.seller?.name || "Verified Seller"}</span>
+                                        </span>
+                                        <ArrowRight className="h-4 w-4 text-neutral-300 group-hover:text-indigo-600 transition-colors dark:group-hover:text-indigo-400 shrink-0" />
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
