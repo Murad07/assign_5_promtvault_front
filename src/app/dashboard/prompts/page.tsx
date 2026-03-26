@@ -4,13 +4,41 @@ import { useAuth } from "@/context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/api";
 import { useState } from "react";
-import { Plus, Pencil, Trash2, X, FileText, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, X, FileText, Loader2, Upload } from "lucide-react";
 
 export default function PromptsDashboard() {
     const { user } = useAuth();
     const queryClient = useQueryClient();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const uploadData = new FormData();
+            uploadData.append("file", file);
+            uploadData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "");
+
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                method: "POST",
+                body: uploadData,
+            });
+            const data = await res.json();
+
+            if (data.secure_url) {
+                setFormData(prev => ({ ...prev, outputPreview: data.secure_url }));
+            }
+        } catch (error) {
+            console.error("Upload failed", error);
+            alert("Image upload failed. Please try again or paste a URL.");
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     // Form State
     const [formData, setFormData] = useState({
@@ -272,15 +300,39 @@ export default function PromptsDashboard() {
                                 </div>
 
                                 <div className="col-span-2">
-                                    <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">Output Preview (URL)</label>
-                                    <input
-                                        required
-                                        type="url"
-                                        value={formData.outputPreview}
-                                        onChange={(e) => setFormData({ ...formData, outputPreview: e.target.value })}
-                                        className="block w-full rounded-lg border border-neutral-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white sm:text-sm"
-                                        placeholder="https://imgur.com/your-generated-image.jpg"
-                                    />
+                                    <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">Output Preview (Link or Upload)</label>
+                                    <div className="flex gap-3 items-center">
+                                        <input
+                                            required
+                                            type="url"
+                                            value={formData.outputPreview}
+                                            onChange={(e) => setFormData({ ...formData, outputPreview: e.target.value })}
+                                            className="block w-full flex-1 rounded-lg border border-neutral-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white sm:text-sm"
+                                            placeholder="Paste URL (e.g. Google Drive, Imgur)"
+                                        />
+                                        <div className="relative shrink-0">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleFileUpload}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                                                disabled={isUploading}
+                                            />
+                                            <button
+                                                type="button"
+                                                disabled={isUploading}
+                                                className="inline-flex items-center gap-2 rounded-lg bg-neutral-100 hover:bg-neutral-200 px-4 py-2 text-sm font-medium text-neutral-700 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:text-neutral-300 transition-colors h-[38px]"
+                                            >
+                                                {isUploading ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
+                                                {isUploading ? "Uploading..." : "Upload Image"}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {formData.outputPreview && (
+                                        <div className="mt-2 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium break-all">
+                                            ✓ Active Preview URL: {formData.outputPreview}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Secret Prompt is only editable by the Seller */}
