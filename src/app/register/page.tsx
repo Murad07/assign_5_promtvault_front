@@ -137,6 +137,22 @@ export default function RegisterPage() {
                                 </button>
                             </div>
                         </div>
+
+                        {role === "SELLER" && (
+                            <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-900/50 dark:bg-amber-900/20">
+                                <div className="flex h-5 items-center">
+                                    <input
+                                        id="terms"
+                                        type="checkbox"
+                                        required
+                                        className="h-4 w-4 rounded border-neutral-300 text-indigo-600 focus:ring-indigo-600 dark:border-neutral-600 dark:bg-neutral-700 dark:ring-offset-neutral-900"
+                                    />
+                                </div>
+                                <label htmlFor="terms" className="font-medium text-amber-800 dark:text-amber-400">
+                                    I agree to the PromptVault Seller Terms & Conditions, explicitly acknowledging that the platform processes a continuous 5% processing fee on all withdrawn prompt revenue natively.
+                                </label>
+                            </div>
+                        )}
                     </div>
 
                     <div>

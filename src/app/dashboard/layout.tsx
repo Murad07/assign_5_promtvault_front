@@ -12,7 +12,8 @@ import {
     History,
     LogOut,
     Menu,
-    X
+    X,
+    Wallet
 } from "lucide-react";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -47,6 +48,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 { name: "Manage Users", href: "/dashboard/users", icon: Users },
                 { name: "All Orders", href: "/dashboard/orders", icon: ShoppingCart },
                 { name: "Manage Prompts", href: "/dashboard/prompts", icon: FileCode2 },
+                { name: "Payout Transfers", href: "/dashboard/withdrawals", icon: Wallet },
             ];
         }
 
@@ -54,6 +56,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             return [
                 ...baseLinks,
                 { name: "My Native Prompts", href: "/dashboard/prompts", icon: FileCode2 },
+                { name: "Revenue Pipeline", href: "/dashboard/withdrawals", icon: Wallet },
             ];
         }
 
