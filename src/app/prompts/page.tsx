@@ -1,15 +1,24 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Loader2, Search, Filter, ArrowRight, PackageOpen, Star, TrendingUp } from "lucide-react";
 
-// Assuming public fetch since GET /prompts is globally exposed
-const fetchPublicPrompts = async () => {
+const fetchPublicPrompts = async ({ pageParam = 1, queryKey }: any) => {
+    const [_key, { searchTerm, category, sortOrder }] = queryKey;
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-    const res = await fetch(`${API_URL}/prompts`, {
+
+    const params = new URLSearchParams({
+        page: pageParam.toString(),
+        limit: "10",
+        searchTerm: searchTerm || "",
+        category: category || "ALL",
+        sortOrder: sortOrder || "NEWEST"
+    });
+
+    const res = await fetch(`${API_URL}/prompts?${params.toString()}`, {
         headers: { "Content-Type": "application/json" }
     });
 
@@ -21,31 +30,25 @@ function PromptsInner() {
     const searchParams = useSearchParams();
     const queryCat = searchParams.get("category");
 
-    const { data, isLoading, isError } = useQuery({
-        queryKey: ["public-prompts"],
-        queryFn: fetchPublicPrompts,
-    });
-
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<string>(queryCat || "ALL");
     const [sortOrder, setSortOrder] = useState<"NEWEST" | "PRICE_ASC" | "PRICE_DESC">("NEWEST");
 
+    const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+        queryKey: ["public-prompts", { searchTerm: searchQuery, category: selectedCategory, sortOrder }],
+        queryFn: fetchPublicPrompts,
+        initialPageParam: 1,
+        getNextPageParam: (lastPage: any) => {
+            if (lastPage.meta && lastPage.meta.page < lastPage.meta.totalPages) {
+                return lastPage.meta.page + 1;
+            }
+            return undefined;
+        }
+    });
+
     const categories = ["ALL", "IMAGES", "MARKETING", "CODING", "WRITING"];
 
-    // Filter and sort logic natively
-    const prompts = data?.data || [];
-
-    const filteredPrompts = prompts.filter((prompt: any) => {
-        const matchesSearch = prompt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            prompt.description.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = selectedCategory === "ALL" || prompt.category === selectedCategory;
-        return matchesSearch && matchesCategory;
-    }).sort((a: any, b: any) => {
-        if (sortOrder === "PRICE_ASC") return a.price - b.price;
-        if (sortOrder === "PRICE_DESC") return b.price - a.price;
-        // Default to newest (createdAt desc)
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
+    const filteredPrompts = data?.pages.flatMap((page: any) => page.data) || [];
 
     return (
         <div className="bg-neutral-50 min-h-screen dark:bg-neutral-950 pb-24">
@@ -216,6 +219,29 @@ function PromptsInner() {
                                 </div>
                             </Link>
                         ))}
+                    </div>
+                )}
+
+                {/* Infinite Scroll Controller */}
+                {hasNextPage && (
+                    <div className="mt-12 flex justify-center pb-8 border-t border-neutral-200 dark:border-neutral-800 pt-12">
+                        <button
+                            onClick={() => fetchNextPage()}
+                            disabled={isFetchingNextPage}
+                            className="group relative shadow-sm inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-3 font-semibold text-neutral-900 border border-neutral-200 transition-all hover:bg-neutral-50 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-neutral-900 dark:border-neutral-800 dark:text-white dark:hover:bg-neutral-800"
+                        >
+                            {isFetchingNextPage ? (
+                                <>
+                                    <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={20} />
+                                    Unlocking records...
+                                </>
+                            ) : (
+                                <>
+                                    Load More Results
+                                    <ArrowRight className="text-neutral-400 group-hover:text-indigo-600 transition-colors dark:text-neutral-500 dark:group-hover:text-indigo-400" size={18} />
+                                </>
+                            )}
+                        </button>
                     </div>
                 )}
             </div>
