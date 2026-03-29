@@ -3,7 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/api";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Wallet, ArrowUpRight, TrendingUp, CheckCircle, XCircle, Clock, Loader2, DollarSign } from "lucide-react";
 
 export default function WithdrawalsDashboard() {
@@ -13,6 +13,9 @@ export default function WithdrawalsDashboard() {
     const [payoutAddress, setPayoutAddress] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [alertMessage, setAlertMessage] = useState<{ title: string; message: string; type: "error" | "success" | "warning" } | null>(null);
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     // Fetch Withdrawals
     const { data: withdrawalsData, isLoading } = useQuery({
@@ -55,6 +58,10 @@ export default function WithdrawalsDashboard() {
         },
     });
 
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [itemsPerPage, withdrawalsData]);
+
     const handleRequest = (e: React.FormEvent) => {
         e.preventDefault();
         const amount = Number(withdrawAmount);
@@ -78,6 +85,15 @@ export default function WithdrawalsDashboard() {
     const withdrawals = withdrawalsData?.items || [];
     const availableBalance = withdrawalsData?.availableBalance || 0;
 
+    const platformRevenue = user?.role === "ADMIN"
+        ? withdrawals.filter((w: any) => w.status === "APPROVED").reduce((acc: number, curr: any) => acc + curr.fee, 0)
+        : 0;
+
+    // Pagination Logic
+    const totalPages = Math.ceil(withdrawals.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedWithdrawals = withdrawals.slice(startIndex, startIndex + itemsPerPage);
+
     return (
         <>
             <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8">
@@ -91,6 +107,14 @@ export default function WithdrawalsDashboard() {
                             {user?.role === "ADMIN" ? "Manage and orchestrate structured payout constraints securely." : "Request pipeline transitions directly to your bank globally."}
                         </p>
                     </div>
+                    {user?.role === "ADMIN" && (
+                        <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800/50 rounded-xl px-5 py-3 flex flex-col items-end sm:items-start shadow-sm">
+                            <span className="text-xs font-bold uppercase tracking-wider text-indigo-800 dark:text-indigo-400 flex items-center gap-1.5">
+                                <TrendingUp size={14} /> Total Profit (5% Fees)
+                            </span>
+                            <span className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-500">+${platformRevenue.toFixed(2)}</span>
+                        </div>
+                    )}
                 </div>
 
                 {user?.role === "SELLER" && (
@@ -166,7 +190,7 @@ export default function WithdrawalsDashboard() {
                                         <td colSpan={7} className="px-6 py-8 text-center text-neutral-500">No structured payout arrays successfully detected natively.</td>
                                     </tr>
                                 ) : (
-                                    withdrawals.map((w: any) => (
+                                    paginatedWithdrawals.map((w: any) => (
                                         <tr key={w.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
                                             {user?.role === "ADMIN" && (
                                                 <td className="px-6 py-4">
@@ -218,6 +242,49 @@ export default function WithdrawalsDashboard() {
                                 )}
                             </tbody>
                         </table>
+
+                        {/* Pagination Controls */}
+                        <div className="flex flex-col sm:flex-row items-center justify-between border-t border-neutral-200 bg-white px-6 py-4 dark:border-neutral-800 dark:bg-neutral-900">
+                            <div className="flex items-center gap-4 mb-4 sm:mb-0">
+                                <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
+                                    Rows per page:
+                                </span>
+                                <select
+                                    className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium text-neutral-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+                                    value={itemsPerPage}
+                                    onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                                >
+                                    <option value={5}>5</option>
+                                    <option value={10}>10</option>
+                                    <option value={20}>20</option>
+                                    <option value={50}>50</option>
+                                </select>
+                                <span className="text-sm text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
+                                    Showing {withdrawals.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + itemsPerPage, withdrawals.length)} of {withdrawals.length}
+                                </span>
+                            </div>
+                            {totalPages > 1 && (
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        className="rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                        disabled={currentPage === 1}
+                                    >
+                                        Previous
+                                    </button>
+                                    <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 px-2">
+                                        Page {currentPage} of {totalPages}
+                                    </span>
+                                    <button
+                                        className="rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
