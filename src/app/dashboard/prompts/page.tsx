@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/api";
 import React, { useState } from "react";
-import { Plus, Pencil, Trash2, X, FileText, Loader2, Upload, Search, ChevronLeft, ChevronRight, ShieldAlert } from "lucide-react";
+import { Plus, Pencil, Trash2, X, FileText, Loader2, Upload, Search, ChevronLeft, ChevronRight, ShieldAlert, ShieldCheck, Ban } from "lucide-react";
 
 export default function PromptsDashboard() {
     const { user } = useAuth();
@@ -12,7 +12,7 @@ export default function PromptsDashboard() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
-    const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string, isBlocked: boolean } | null>(null);
 
     // Filter & Pagination State
     const [searchTerm, setSearchTerm] = useState("");
@@ -57,7 +57,7 @@ export default function PromptsDashboard() {
         secretPrompt: "",
     });
 
-    const endpoint = user?.role === "SELLER" ? "/prompts/my-prompts" : "/prompts";
+    const endpoint = user?.role === "SELLER" ? "/prompts/my-prompts" : "/prompts?includeBlocked=true";
 
     const { data: promptsData, isLoading, isError } = useQuery({
         queryKey: ["dashboard-prompts", user?.role],
@@ -269,11 +269,11 @@ export default function PromptsDashboard() {
                                                     </button>
                                                 )}
                                                 <button
-                                                    onClick={() => setDeleteTarget({ id: prompt.id, title: prompt.title })}
-                                                    className="rounded-md p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors"
-                                                    title="Delete Prompt"
+                                                    onClick={() => setDeleteTarget({ id: prompt.id, title: prompt.title, isBlocked: !!prompt.isBlocked })}
+                                                    className={`rounded-md p-2 transition-colors ${prompt.isBlocked ? "text-emerald-500 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-900/20 dark:text-emerald-400" : "text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20"}`}
+                                                    title={prompt.isBlocked ? "Reactivate Prompt" : "Suspend Prompt"}
                                                 >
-                                                    <Trash2 size={18} />
+                                                    {prompt.isBlocked ? <ShieldCheck size={18} /> : <Ban size={18} />}
                                                 </button>
                                             </div>
                                         </td>
@@ -477,18 +477,22 @@ export default function PromptsDashboard() {
                 </div>
             )}
 
-            {/* Custom Disable Confirmation Modal */}
+            {/* Custom Disable/Activate Confirmation Modal */}
             {deleteTarget && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/50 backdrop-blur-sm p-4">
                     <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
-                        <div className="flex items-center gap-4 text-amber-600 dark:text-amber-400 mb-4">
-                            <div className="rounded-full bg-amber-100 p-3 dark:bg-amber-900/30">
-                                <ShieldAlert size={24} />
+                        <div className={`flex items-center gap-4 mb-4 ${deleteTarget.isBlocked ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+                            <div className={`rounded-full p-3 ${deleteTarget.isBlocked ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-amber-100 dark:bg-amber-900/30"}`}>
+                                {deleteTarget.isBlocked ? <ShieldCheck size={24} /> : <ShieldAlert size={24} />}
                             </div>
-                            <h2 className="text-xl font-bold text-neutral-900 dark:text-white">Suspend Prompt Layout</h2>
+                            <h2 className="text-xl font-bold text-neutral-900 dark:text-white">
+                                {deleteTarget.isBlocked ? "Activate Prompt Layout" : "Suspend Prompt Layout"}
+                            </h2>
                         </div>
                         <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6 font-medium">
-                            Are you strictly sure you want to deactivate `<span className="font-bold text-neutral-900 dark:text-white">{deleteTarget.title}</span>`? Transactions will automatically be disabled indefinitely.
+                            {deleteTarget.isBlocked
+                                ? <>Are you sure you want to reactivate `<span className="font-bold text-neutral-900 dark:text-white">{deleteTarget.title}</span>`? It will become publicly available again.</>
+                                : <>Are you strictly sure you want to deactivate `<span className="font-bold text-neutral-900 dark:text-white">{deleteTarget.title}</span>`? Transactions will automatically be disabled indefinitely.</>}
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-end mt-8">
                             <button
@@ -502,9 +506,10 @@ export default function PromptsDashboard() {
                                     deleteMutation.mutate(deleteTarget.id);
                                     setDeleteTarget(null);
                                 }}
-                                className="px-5 py-2.5 rounded-xl font-semibold text-white bg-amber-600 hover:bg-amber-700 shadow-sm shadow-amber-500/20 transition-all dark:bg-amber-600 dark:hover:bg-amber-700 active:scale-95 flex items-center gap-2"
+                                className={`px-5 py-2.5 rounded-xl font-semibold text-white shadow-sm transition-all active:scale-95 flex items-center gap-2 ${deleteTarget.isBlocked ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20 dark:bg-emerald-600 dark:hover:bg-emerald-700" : "bg-amber-600 hover:bg-amber-700 shadow-amber-500/20 dark:bg-amber-600 dark:hover:bg-amber-700"}`}
                             >
-                                <ShieldAlert size={16} /> Suspend Prompt
+                                {deleteTarget.isBlocked ? <ShieldCheck size={16} /> : <ShieldAlert size={16} />}
+                                {deleteTarget.isBlocked ? "Activate Prompt" : "Suspend Prompt"}
                             </button>
                         </div>
                     </div>

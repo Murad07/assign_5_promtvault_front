@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/api";
 import React, { useState } from "react";
-import { Users, Trash2, Loader2, ShieldAlert, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, Trash2, Loader2, ShieldAlert, Search, ChevronLeft, ChevronRight, ShieldCheck, Ban } from "lucide-react";
 
 export default function ManageUsersPage() {
     const { user } = useAuth();
@@ -14,7 +14,7 @@ export default function ManageUsersPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
-    const [deleteTarget, setDeleteTarget] = useState<{ id: string; email: string } | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<{ id: string; email: string; isBlocked: boolean } | null>(null);
 
     const { data: usersData, isLoading, isError } = useQuery({
         queryKey: ["admin-users"],
@@ -113,7 +113,8 @@ export default function ManageUsersPage() {
                                     <th className="px-6 py-4 font-medium">User / Email</th>
                                     <th className="px-6 py-4 font-medium">Joined Date</th>
                                     <th className="px-6 py-4 font-medium w-48">System Role</th>
-                                    <th className="px-6 py-4 font-medium text-right">Terminate Account</th>
+                                    <th className="px-6 py-4 font-medium">Status</th>
+                                    <th className="px-6 py-4 font-medium text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
@@ -148,14 +149,25 @@ export default function ManageUsersPage() {
                                                 <option value="ADMIN">ADMIN</option>
                                             </select>
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {u.isBlocked ? (
+                                                <span className="inline-flex rounded-full bg-amber-100 px-2 text-xs font-semibold leading-5 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                                                    Suspended
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex rounded-full bg-emerald-100 px-2 text-xs font-semibold leading-5 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                                    Active
+                                                </span>
+                                            )}
+                                        </td>
                                         <td className="px-6 py-4 text-right">
                                             {u.id !== user.id && (
                                                 <button
-                                                    onClick={() => setDeleteTarget({ id: u.id, email: u.email })}
-                                                    className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors"
-                                                    title="Permanently Delete Native User"
+                                                    onClick={() => setDeleteTarget({ id: u.id, email: u.email, isBlocked: !!u.isBlocked })}
+                                                    className={`inline-flex items-center justify-center rounded-lg p-2 transition-colors ${u.isBlocked ? "text-emerald-500 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-900/20 dark:hover:text-emerald-400" : "text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-900/20 dark:hover:text-amber-400"}`}
+                                                    title={u.isBlocked ? "Reactivate Native User" : "Suspend Native User"}
                                                 >
-                                                    <Trash2 size={18} />
+                                                    {u.isBlocked ? <ShieldCheck size={18} /> : <Ban size={18} />}
                                                 </button>
                                             )}
                                         </td>
@@ -220,14 +232,18 @@ export default function ManageUsersPage() {
             {deleteTarget && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/50 backdrop-blur-sm p-4">
                     <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
-                        <div className="flex items-center gap-4 text-amber-600 dark:text-amber-400 mb-4">
-                            <div className="rounded-full bg-amber-100 p-3 dark:bg-amber-900/30">
-                                <ShieldAlert size={24} />
+                        <div className={`flex items-center gap-4 mb-4 ${deleteTarget.isBlocked ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+                            <div className={`rounded-full p-3 ${deleteTarget.isBlocked ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-amber-100 dark:bg-amber-900/30"}`}>
+                                {deleteTarget.isBlocked ? <ShieldCheck size={24} /> : <ShieldAlert size={24} />}
                             </div>
-                            <h2 className="text-xl font-bold text-neutral-900 dark:text-white">Suspend User Account</h2>
+                            <h2 className="text-xl font-bold text-neutral-900 dark:text-white">
+                                {deleteTarget.isBlocked ? "Activate User Account" : "Suspend User Account"}
+                            </h2>
                         </div>
                         <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6 font-medium">
-                            Are you strictly sure you want to deactivate <span className="font-bold text-neutral-900 dark:text-white">{deleteTarget.email}</span>? They will lose access to the platform natively.
+                            {deleteTarget.isBlocked
+                                ? <>Are you sure you want to reactivate <span className="font-bold text-neutral-900 dark:text-white">{deleteTarget.email}</span>? They will regain full access natively.</>
+                                : <>Are you strictly sure you want to deactivate <span className="font-bold text-neutral-900 dark:text-white">{deleteTarget.email}</span>? They will lose access to the platform natively.</>}
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-end mt-8">
                             <button
@@ -241,9 +257,10 @@ export default function ManageUsersPage() {
                                     deleteMutation.mutate(deleteTarget.id);
                                     setDeleteTarget(null);
                                 }}
-                                className="px-5 py-2.5 rounded-xl font-semibold text-white bg-amber-600 hover:bg-amber-700 shadow-sm shadow-amber-500/20 transition-all dark:bg-amber-600 dark:hover:bg-amber-700 active:scale-95 flex items-center gap-2"
+                                className={`px-5 py-2.5 rounded-xl font-semibold text-white shadow-sm transition-all active:scale-95 flex items-center gap-2 ${deleteTarget.isBlocked ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20 dark:bg-emerald-600 dark:hover:bg-emerald-700" : "bg-amber-600 hover:bg-amber-700 shadow-amber-500/20 dark:bg-amber-600 dark:hover:bg-amber-700"}`}
                             >
-                                <ShieldAlert size={16} /> Suspend User
+                                {deleteTarget.isBlocked ? <ShieldCheck size={16} /> : <ShieldAlert size={16} />}
+                                {deleteTarget.isBlocked ? "Activate User" : "Suspend User"}
                             </button>
                         </div>
                     </div>
