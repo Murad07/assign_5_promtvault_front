@@ -3,8 +3,8 @@
 import { useAuth } from "@/context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/api";
-import { useState } from "react";
-import { Copy, ShoppingBag, Eye, X, Loader2, CheckCircle2, Star, MessageSquare } from "lucide-react";
+import React, { useState } from "react";
+import { Copy, ShoppingBag, Eye, X, Loader2, CheckCircle2, Star, MessageSquare, Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function OrdersDashboard() {
     const { user } = useAuth();
@@ -14,6 +14,11 @@ export default function OrdersDashboard() {
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState("");
     const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error", text: string } | null>(null);
+
+    // Search and Pagination State
+    const [searchTerm, setSearchTerm] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     const endpoint = user?.role === "ADMIN" ? "/orders" : "/orders/my-orders";
 
@@ -69,6 +74,27 @@ export default function OrdersDashboard() {
 
     if (!user) return null;
 
+    // Filter & Pagination Logic
+    const allOrders = ordersData?.data || [];
+
+    React.useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, itemsPerPage]);
+
+    const filteredOrders = allOrders.filter((order: any) => {
+        if (!searchTerm) return true;
+        const searchLower = searchTerm.toLowerCase();
+        const matchesPromptTitle = order.items?.some((item: any) =>
+            item.prompt?.title?.toLowerCase().includes(searchLower)
+        );
+        const matchesOrderId = order.id.toLowerCase().includes(searchLower);
+        return matchesPromptTitle || matchesOrderId;
+    });
+
+    const totalPages = Math.ceil(filteredOrders.length / itemsPerPage) || 1;
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -81,6 +107,20 @@ export default function OrdersDashboard() {
                             ? "Monitor all transactions across the platform."
                             : "View your past purchases and access your secret prompts."}
                     </p>
+                </div>
+            </div>
+
+            {/* Search Filter input */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-2">
+                <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                    <input
+                        type="text"
+                        placeholder="Search by Order ID or Prompt Title..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
+                    />
                 </div>
             </div>
 
@@ -109,6 +149,7 @@ export default function OrdersDashboard() {
                             <thead className="border-b border-neutral-200 bg-neutral-50 text-xs uppercase text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900/50 dark:text-neutral-300">
                                 <tr>
                                     <th className="px-6 py-4 font-medium">Order ID</th>
+                                    <th className="px-6 py-4 font-medium">Prompts</th>
                                     <th className="px-6 py-4 font-medium">Date</th>
                                     {user.role === "ADMIN" && <th className="px-6 py-4 font-medium">Buyer</th>}
                                     <th className="px-6 py-4 font-medium">Amount</th>
@@ -117,10 +158,15 @@ export default function OrdersDashboard() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                                {ordersData.data.map((order: any) => (
+                                {paginatedOrders.map((order: any) => (
                                     <tr key={order.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
                                         <td className="px-6 py-4 font-medium text-neutral-900 dark:text-white">
                                             #{order.id.slice(-8).toUpperCase()}
+                                        </td>
+                                        <td className="px-6 py-4 text-neutral-700 dark:text-neutral-300">
+                                            <div className="line-clamp-2 max-w-[200px] text-sm font-semibold">
+                                                {order.items?.map((i: any) => i.prompt?.title).filter(Boolean).join(", ") || "N/A"}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 text-neutral-500">
                                             {new Date(order.createdAt).toLocaleDateString()}
@@ -158,6 +204,55 @@ export default function OrdersDashboard() {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                )}
+
+                {/* Pagination Controls */}
+                {!isLoading && !isError && (ordersData?.data?.length > 0) && (
+                    <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 gap-4">
+                        <div className="flex items-center gap-4 w-full sm:w-auto overflow-hidden">
+                            <select
+                                value={itemsPerPage}
+                                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                                className="py-1.5 px-3 border border-neutral-300 rounded-md bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white text-sm"
+                            >
+                                <option value={5}>5 per page</option>
+                                <option value={10}>10 per page</option>
+                                <option value={20}>20 per page</option>
+                                <option value={50}>50 per page</option>
+                                <option value={100}>100 per page</option>
+                            </select>
+                            <div className="text-sm text-neutral-500 dark:text-neutral-400 whitespace-nowrap hidden sm:block">
+                                Showing <span className="font-semibold text-neutral-900 dark:text-white">
+                                    {filteredOrders.length > 0 ? startIndex + 1 : 0}
+                                </span> to <span className="font-semibold text-neutral-900 dark:text-white">
+                                    {Math.min(startIndex + itemsPerPage, filteredOrders.length)}
+                                </span> of <span className="font-semibold text-neutral-900 dark:text-white">
+                                    {filteredOrders.length}
+                                </span> results
+                            </div>
+                        </div>
+                        {totalPages > 1 && (
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1}
+                                    className="p-1 rounded-md text-neutral-500 hover:bg-neutral-200 dark:text-neutral-400 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <ChevronLeft size={20} />
+                                </button>
+                                <span className="text-sm font-medium text-neutral-900 dark:text-white">
+                                    Page {currentPage} of {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="p-1 rounded-md text-neutral-500 hover:bg-neutral-200 dark:text-neutral-400 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <ChevronRight size={20} />
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
