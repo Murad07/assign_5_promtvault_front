@@ -216,18 +216,18 @@ export default function ManageUsersPage() {
                 )}
             </div>
 
-            {/* Custom Delete Confirmation Modal */}
+            {/* Custom Block Confirmation Modal */}
             {deleteTarget && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/50 backdrop-blur-sm p-4">
                     <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
-                        <div className="flex items-center gap-4 text-red-600 dark:text-red-400 mb-4">
-                            <div className="rounded-full bg-red-100 p-3 dark:bg-red-900/30">
+                        <div className="flex items-center gap-4 text-amber-600 dark:text-amber-400 mb-4">
+                            <div className="rounded-full bg-amber-100 p-3 dark:bg-amber-900/30">
                                 <ShieldAlert size={24} />
                             </div>
-                            <h2 className="text-xl font-bold text-neutral-900 dark:text-white">Terminate User Account</h2>
+                            <h2 className="text-xl font-bold text-neutral-900 dark:text-white">Suspend User Account</h2>
                         </div>
                         <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6 font-medium">
-                            Are you strictly sure you want to permanently erase <span className="font-bold text-neutral-900 dark:text-white">{deleteTarget.email}</span>? This action perfectly bypasses all recovery structures and cannot be undone.
+                            Are you strictly sure you want to deactivate <span className="font-bold text-neutral-900 dark:text-white">{deleteTarget.email}</span>? They will lose access to the platform natively.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-end mt-8">
                             <button
@@ -241,9 +241,9 @@ export default function ManageUsersPage() {
                                     deleteMutation.mutate(deleteTarget.id);
                                     setDeleteTarget(null);
                                 }}
-                                className="px-5 py-2.5 rounded-xl font-semibold text-white bg-red-600 hover:bg-red-700 shadow-sm shadow-red-500/20 transition-all dark:bg-red-600 dark:hover:bg-red-700 active:scale-95 flex items-center gap-2"
+                                className="px-5 py-2.5 rounded-xl font-semibold text-white bg-amber-600 hover:bg-amber-700 shadow-sm shadow-amber-500/20 transition-all dark:bg-amber-600 dark:hover:bg-amber-700 active:scale-95 flex items-center gap-2"
                             >
-                                <Trash2 size={16} /> Permanently Terminate
+                                <ShieldAlert size={16} /> Suspend User
                             </button>
                         </div>
                     </div>
