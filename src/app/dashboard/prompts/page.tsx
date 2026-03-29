@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/api";
 import React, { useState } from "react";
-import { Plus, Pencil, Trash2, X, FileText, Loader2, Upload, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, X, FileText, Loader2, Upload, Search, ChevronLeft, ChevronRight, ShieldAlert } from "lucide-react";
 
 export default function PromptsDashboard() {
     const { user } = useAuth();
@@ -12,6 +12,7 @@ export default function PromptsDashboard() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
 
     // Filter & Pagination State
     const [searchTerm, setSearchTerm] = useState("");
@@ -268,12 +269,9 @@ export default function PromptsDashboard() {
                                                     </button>
                                                 )}
                                                 <button
-                                                    onClick={() => {
-                                                        if (confirm("Are you sure you want to completely delete this prompt?")) {
-                                                            deleteMutation.mutate(prompt.id);
-                                                        }
-                                                    }}
+                                                    onClick={() => setDeleteTarget({ id: prompt.id, title: prompt.title })}
                                                     className="rounded-md p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors"
+                                                    title="Delete Prompt"
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
@@ -475,6 +473,40 @@ export default function PromptsDashboard() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Custom Delete Confirmation Modal */}
+            {deleteTarget && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/50 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+                        <div className="flex items-center gap-4 text-red-600 dark:text-red-400 mb-4">
+                            <div className="rounded-full bg-red-100 p-3 dark:bg-red-900/30">
+                                <ShieldAlert size={24} />
+                            </div>
+                            <h2 className="text-xl font-bold text-neutral-900 dark:text-white">Delete Prompt</h2>
+                        </div>
+                        <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6 font-medium">
+                            Are you strictly sure you want to permanently delete prompt <span className="font-bold text-neutral-900 dark:text-white">{deleteTarget.title}</span>? This action perfectly bypasses all recovery structures and cannot be undone.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3 justify-end mt-8">
+                            <button
+                                onClick={() => setDeleteTarget(null)}
+                                className="px-5 py-2.5 rounded-xl font-semibold text-neutral-700 bg-neutral-100 hover:bg-neutral-200 transition-colors dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                            >
+                                Cancel Action
+                            </button>
+                            <button
+                                onClick={() => {
+                                    deleteMutation.mutate(deleteTarget.id);
+                                    setDeleteTarget(null);
+                                }}
+                                className="px-5 py-2.5 rounded-xl font-semibold text-white bg-red-600 hover:bg-red-700 shadow-sm shadow-red-500/20 transition-all dark:bg-red-600 dark:hover:bg-red-700 active:scale-95 flex items-center gap-2"
+                            >
+                                <Trash2 size={16} /> Permanently Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
