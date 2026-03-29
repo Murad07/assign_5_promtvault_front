@@ -31,8 +31,9 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_... (Stripe Public Test Key)
 ```
 
-## 🌐 Deployed Application
-- Live Vercel App: Available securely via GitHub deployment links!
+## 🌐 Live URLs
+- Live Frontend User Application: [https://assign-5-promtvault-front.vercel.app/](https://assign-5-promtvault-front.vercel.app/)
+- Live Backend API URL: *(Please provide the backend URL if applicable, or assume it is connected natively to the frontend)*
 
 ## 🛡️ Super Admin Default Credentials
 When evaluating the internal UI platform structure, use the following credentials:
