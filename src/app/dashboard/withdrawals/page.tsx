@@ -10,6 +10,7 @@ export default function WithdrawalsDashboard() {
     const { user } = useAuth();
     const queryClient = useQueryClient();
     const [withdrawAmount, setWithdrawAmount] = useState("");
+    const [payoutAddress, setPayoutAddress] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [alertMessage, setAlertMessage] = useState<{ title: string; message: string; type: "error" | "success" | "warning" } | null>(null);
 
@@ -27,7 +28,7 @@ export default function WithdrawalsDashboard() {
             setIsSubmitting(true);
             return await fetchWithAuth("/withdrawals", {
                 method: "POST",
-                body: JSON.stringify({ amount }),
+                body: JSON.stringify({ amount, payoutAddress }),
             });
         },
         onSuccess: () => {
@@ -61,6 +62,9 @@ export default function WithdrawalsDashboard() {
 
         if (amount < 10) {
             return setAlertMessage({ title: "Invalid Limit", message: "Minimum withdrawal constraint is $10 natively.", type: "warning" });
+        }
+        if (!payoutAddress.trim()) {
+            return setAlertMessage({ title: "Destination Missing", message: "Please provide a valid PayPal Email or Bank Target natively.", type: "warning" });
         }
         if (amount > availableBalance) {
             return setAlertMessage({ title: "Insufficient Balance", message: `You only have $${availableBalance.toFixed(2)} available for withdrawal.`, type: "error" });
@@ -116,6 +120,18 @@ export default function WithdrawalsDashboard() {
                                     />
                                 </div>
                             </div>
+                            <div className="w-full sm:max-w-xs">
+                                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Target Address</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={payoutAddress}
+                                        onChange={(e) => setPayoutAddress(e.target.value)}
+                                        placeholder="PayPal / Bank IBAN"
+                                        className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all dark:text-white"
+                                    />
+                                </div>
+                            </div>
                             <button
                                 type="submit"
                                 disabled={isSubmitting || !withdrawAmount || Number(withdrawAmount) < 10}
@@ -136,6 +152,7 @@ export default function WithdrawalsDashboard() {
                             <thead className="border-b border-neutral-200 bg-neutral-50 text-xs uppercase text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900/50 dark:text-neutral-300">
                                 <tr>
                                     {user?.role === "ADMIN" && <th className="px-6 py-4 font-medium">Native Seller Target</th>}
+                                    <th className="px-6 py-4 font-medium">Destination Routing</th>
                                     <th className="px-6 py-4 font-medium">Net Value</th>
                                     <th className="px-6 py-4 font-medium">Platform Fee (5%)</th>
                                     <th className="px-6 py-4 font-medium">Status Array</th>
@@ -146,7 +163,7 @@ export default function WithdrawalsDashboard() {
                             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
                                 {withdrawals.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-8 text-center text-neutral-500">No structured payout arrays successfully detected natively.</td>
+                                        <td colSpan={7} className="px-6 py-8 text-center text-neutral-500">No structured payout arrays successfully detected natively.</td>
                                     </tr>
                                 ) : (
                                     withdrawals.map((w: any) => (
@@ -157,6 +174,11 @@ export default function WithdrawalsDashboard() {
                                                     <div className="text-xs text-neutral-500">{w.seller?.email || 'N/A'}</div>
                                                 </td>
                                             )}
+                                            <td className="px-6 py-4">
+                                                <span className="inline-flex max-w-[12rem] truncate rounded bg-neutral-100 px-2 py-1 font-mono text-xs text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400" title={w.payoutAddress}>
+                                                    {w.payoutAddress || "N/A"}
+                                                </span>
+                                            </td>
                                             <td className="px-6 py-4 font-medium text-neutral-900 dark:text-white">${w.amount.toFixed(2)}</td>
                                             <td className="px-6 py-4 text-emerald-600 dark:text-emerald-400">+${w.fee.toFixed(2)}</td>
                                             <td className="px-6 py-4 whitespace-nowrap">
@@ -205,8 +227,8 @@ export default function WithdrawalsDashboard() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/50 backdrop-blur-sm p-4">
                     <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-center">
                         <div className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${alertMessage.type === "success" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" :
-                                alertMessage.type === "warning" ? "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400" :
-                                    "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+                            alertMessage.type === "warning" ? "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400" :
+                                "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
                             }`}>
                             {alertMessage.type === "success" ? <CheckCircle size={28} /> : alertMessage.type === "warning" ? <Clock size={28} /> : <XCircle size={28} />}
                         </div>
