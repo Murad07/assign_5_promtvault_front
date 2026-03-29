@@ -3,8 +3,8 @@
 import { useAuth } from "@/context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/api";
-import { useState } from "react";
-import { Plus, Pencil, Trash2, X, FileText, Loader2, Upload } from "lucide-react";
+import React, { useState } from "react";
+import { Plus, Pencil, Trash2, X, FileText, Loader2, Upload, Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function PromptsDashboard() {
     const { user } = useAuth();
@@ -12,6 +12,12 @@ export default function PromptsDashboard() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+
+    // Filter & Pagination State
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterCategory, setFilterCategory] = useState("ALL");
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -125,6 +131,24 @@ export default function PromptsDashboard() {
 
     if (!user) return null;
 
+    // Filter & Paginate logic
+    const allPrompts = promptsData?.data || [];
+
+    // Reset to page 1 when search/filter changes
+    React.useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, filterCategory]);
+
+    const filteredPrompts = allPrompts.filter((prompt: any) => {
+        const matchesSearch = prompt.title.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = filterCategory === "ALL" || prompt.category === filterCategory;
+        return matchesSearch && matchesCategory;
+    });
+
+    const totalPages = Math.ceil(filteredPrompts.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginatedPrompts = filteredPrompts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -147,6 +171,31 @@ export default function PromptsDashboard() {
                         Add New Prompt
                     </button>
                 )}
+            </div>
+
+            {/* Search and Filter */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-2">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                    <input
+                        type="text"
+                        placeholder="Search prompts by title..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
+                    />
+                </div>
+                <select
+                    value={filterCategory}
+                    onChange={(e) => setFilterCategory(e.target.value)}
+                    className="py-2 px-4 border border-neutral-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white sm:max-w-xs"
+                >
+                    <option value="ALL">All Categories</option>
+                    <option value="IMAGES">Midjourney Images</option>
+                    <option value="CODING">Software Engineering</option>
+                    <option value="MARKETING">SEO & Marketing</option>
+                    <option value="WRITING">Business Strategy</option>
+                </select>
             </div>
 
             <div className="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 overflow-hidden">
@@ -173,23 +222,31 @@ export default function PromptsDashboard() {
                         <table className="w-full text-left text-sm text-neutral-600 dark:text-neutral-400">
                             <thead className="border-b border-neutral-200 bg-neutral-50 text-xs uppercase text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900/50 dark:text-neutral-300">
                                 <tr>
-                                    <th className="px-6 py-4 font-medium">Title & Category</th>
-                                    <th className="px-6 py-4 font-medium">Price</th>
-                                    <th className="px-6 py-4 font-medium">Status</th>
-                                    <th className="px-6 py-4 font-medium text-right">Actions</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider dark:text-neutral-400">Title & Description</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider dark:text-neutral-400">Category</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider dark:text-neutral-400">Price</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider dark:text-neutral-400">Status</th>
+                                    <th className="px-6 py-4 text-right text-xs font-semibold text-neutral-500 uppercase tracking-wider dark:text-neutral-400">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                                {promptsData.data.map((prompt: any) => (
+                                {paginatedPrompts.map((prompt: any) => (
                                     <tr key={prompt.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
                                         <td className="px-6 py-4">
-                                            <div className="font-medium text-neutral-900 dark:text-white">{prompt.title}</div>
-                                            <div className="text-xs text-neutral-500">{prompt.category}</div>
-                                        </td>
-                                        <td className="px-6 py-4 font-medium text-emerald-600 dark:text-emerald-400">
-                                            ${prompt.price.toFixed(2)}
+                                            <div className="font-semibold text-neutral-900 dark:text-white line-clamp-1">{prompt.title}</div>
+                                            <div className="text-sm text-neutral-500 line-clamp-1 mt-1 dark:text-neutral-400">{prompt.description}</div>
                                         </td>
                                         <td className="px-6 py-4">
+                                            <span className="inline-flex rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400">
+                                                {prompt.category}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="font-bold text-neutral-900 dark:text-emerald-400 text-sm">
+                                                ${prompt.price.toFixed(2)}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             {prompt.isBlocked ? (
                                                 <span className="inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800 dark:bg-red-900/30 dark:text-red-400">
                                                     Blocked
@@ -226,6 +283,34 @@ export default function PromptsDashboard() {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                )}
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="px-6 py-4 flex items-center justify-between border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50">
+                        <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                            Showing <span className="font-semibold text-neutral-900 dark:text-white">{startIndex + 1}</span> to <span className="font-semibold text-neutral-900 dark:text-white">{Math.min(startIndex + ITEMS_PER_PAGE, filteredPrompts.length)}</span> of <span className="font-semibold text-neutral-900 dark:text-white">{filteredPrompts.length}</span> results
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="p-1 rounded-md text-neutral-500 hover:bg-neutral-200 dark:text-neutral-400 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <ChevronLeft size={20} />
+                            </button>
+                            <span className="text-sm font-medium text-neutral-900 dark:text-white">
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="p-1 rounded-md text-neutral-500 hover:bg-neutral-200 dark:text-neutral-400 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <ChevronRight size={20} />
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
