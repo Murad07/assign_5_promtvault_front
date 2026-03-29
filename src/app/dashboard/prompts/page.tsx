@@ -17,7 +17,7 @@ export default function PromptsDashboard() {
     const [searchTerm, setSearchTerm] = useState("");
     const [filterCategory, setFilterCategory] = useState("ALL");
     const [currentPage, setCurrentPage] = useState(1);
-    const ITEMS_PER_PAGE = 10;
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -134,10 +134,10 @@ export default function PromptsDashboard() {
     // Filter & Paginate logic
     const allPrompts = promptsData?.data || [];
 
-    // Reset to page 1 when search/filter changes
+    // Reset to page 1 when search/filter/itemsPerPage changes
     React.useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, filterCategory]);
+    }, [searchTerm, filterCategory, itemsPerPage]);
 
     const filteredPrompts = allPrompts.filter((prompt: any) => {
         const matchesSearch = prompt.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -145,9 +145,9 @@ export default function PromptsDashboard() {
         return matchesSearch && matchesCategory;
     });
 
-    const totalPages = Math.ceil(filteredPrompts.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const paginatedPrompts = filteredPrompts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(filteredPrompts.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedPrompts = filteredPrompts.slice(startIndex, startIndex + itemsPerPage);
 
     return (
         <div className="space-y-6">
@@ -287,11 +287,30 @@ export default function PromptsDashboard() {
                 )}
 
                 {/* Pagination Controls */}
-                {totalPages > 1 && (
-                    <div className="px-6 py-4 flex items-center justify-between border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50">
-                        <div className="text-sm text-neutral-500 dark:text-neutral-400">
-                            Showing <span className="font-semibold text-neutral-900 dark:text-white">{startIndex + 1}</span> to <span className="font-semibold text-neutral-900 dark:text-white">{Math.min(startIndex + ITEMS_PER_PAGE, filteredPrompts.length)}</span> of <span className="font-semibold text-neutral-900 dark:text-white">{filteredPrompts.length}</span> results
+                <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 gap-4">
+                    <div className="flex items-center gap-4 w-full sm:w-auto overflow-hidden">
+                        <select
+                            value={itemsPerPage}
+                            onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                            className="py-1.5 px-3 border border-neutral-300 rounded-md bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white text-sm"
+                        >
+                            <option value={5}>5 per page</option>
+                            <option value={10}>10 per page</option>
+                            <option value={20}>20 per page</option>
+                            <option value={50}>50 per page</option>
+                            <option value={100}>100 per page</option>
+                        </select>
+                        <div className="text-sm text-neutral-500 dark:text-neutral-400 whitespace-nowrap hidden sm:block">
+                            Showing <span className="font-semibold text-neutral-900 dark:text-white">
+                                {filteredPrompts.length > 0 ? startIndex + 1 : 0}
+                            </span> to <span className="font-semibold text-neutral-900 dark:text-white">
+                                {Math.min(startIndex + itemsPerPage, filteredPrompts.length)}
+                            </span> of <span className="font-semibold text-neutral-900 dark:text-white">
+                                {filteredPrompts.length}
+                            </span> results
                         </div>
+                    </div>
+                    {totalPages > 1 && (
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
@@ -311,8 +330,8 @@ export default function PromptsDashboard() {
                                 <ChevronRight size={20} />
                             </button>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
 
             {/* Editor Modal Overlay */}
