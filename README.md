@@ -10,6 +10,16 @@ The completely responsive, lightning-fast Next.js frontend application powering 
 - **Charts & Statistics:** Recharts (Pie Chart Data Visualization)
 - **Payment Processing:** `@stripe/react-stripe-js`
 
+## ✨ Key Features
+
+- **User Authentication & RBAC**: Secure login/registration with Role-Based Access Control (Admin, Seller, Buyer).
+- **Interactive UI**: Responsive and modern UI built with Next.js, Tailwind CSS, and Shadcn UI.
+- **Prompt Marketplace**: Seamless browsing and searching of AI prompts (Midjourney, ChatGPT, etc.).
+- **Payment Integration**: Secure and efficient checkout process powered by Stripe.
+- **Role-Based Dashboards**: Real-time personalized dashboards for Admin, Seller, and Buyer.
+- **Data Visualization**: Dynamic admin charts mapping live sales, metrics, and system statistics using Recharts.
+- **Seller Management**: Complete CRUD capabilities for sellers to manage their published AI architectures.
+
 ## ⚙️ Core Modules (Role Based Dashboards)
 
 1. **Admin Hierarchy Dashboard**: Total control over the marketplace ecosystem. Map out live Sales metrics across dynamic Recharts modules, permanently block rogue prompts, or instantly suspend/modify Users!
