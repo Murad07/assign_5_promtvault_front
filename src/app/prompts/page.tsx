@@ -111,11 +111,29 @@ function PromptsInner() {
                     </div>
                 </div>
 
-                {/* Loading / Error / Empty States */}
+                {/* Skeleton Loader Grid */}
                 {isLoading && (
-                    <div className="flex flex-col items-center justify-center py-24">
-                        <Loader2 className="h-10 w-10 animate-spin text-indigo-600 mb-4" />
-                        <p className="text-neutral-500">Fetching the marketplace...</p>
+                    <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {[...Array(8)].map((_, i) => (
+                            <div key={i} className="animate-pulse flex flex-col bg-white rounded-2xl border border-neutral-200 overflow-hidden dark:bg-neutral-900 dark:border-neutral-800">
+                                <div className="aspect-[4/3] w-full bg-neutral-200 dark:bg-neutral-800" />
+                                <div className="p-5 flex flex-col gap-3">
+                                    <div className="flex justify-between items-center">
+                                        <div className="h-5 w-20 bg-neutral-200 rounded dark:bg-neutral-800" />
+                                        <div className="h-5 w-12 bg-neutral-200 rounded dark:bg-neutral-800" />
+                                    </div>
+                                    <div className="h-6 w-3/4 bg-neutral-200 rounded dark:bg-neutral-800" />
+                                    <div className="space-y-2">
+                                        <div className="h-4 w-full bg-neutral-200 rounded dark:bg-neutral-800" />
+                                        <div className="h-4 w-2/3 bg-neutral-200 rounded dark:bg-neutral-800" />
+                                    </div>
+                                    <div className="mt-4 pt-4 border-t border-neutral-100 dark:border-neutral-800 flex justify-between">
+                                        <div className="h-4 w-24 bg-neutral-200 rounded dark:bg-neutral-800" />
+                                        <div className="h-4 w-4 bg-neutral-200 rounded dark:bg-neutral-800" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
 
