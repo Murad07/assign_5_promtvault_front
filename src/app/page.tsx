@@ -27,33 +27,51 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col">
       {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden bg-neutral-950 px-4 py-24 sm:px-6 lg:px-8">
+      <section className="relative flex min-h-[65vh] items-center justify-center overflow-hidden bg-neutral-950 px-4 py-20 sm:px-6 lg:px-8">
+        {/* Animated Background Elements */}
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')] bg-cover bg-center opacity-20 filter grayscale"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/80 to-transparent"></div>
 
+        {/* Floating gradient orbs for animation */}
+        <div className="absolute top-1/4 left-1/4 h-64 w-64 animate-pulse rounded-full bg-indigo-600/20 blur-[100px]"></div>
+        <div className="absolute bottom-1/4 right-1/4 h-64 w-64 animate-pulse rounded-full bg-cyan-600/20 blur-[100px] [animation-delay:2s]"></div>
+
         <div className="relative mx-auto max-w-5xl text-center">
-          <span className="inline-flex rounded-full bg-indigo-500/10 px-3 py-1 text-sm font-semibold text-indigo-400 ring-1 ring-inset ring-indigo-500/20">
-            The #1 AI Prompt Marketplace
-          </span>
-          <h1 className="mt-8 text-5xl font-black tracking-tight text-white sm:text-7xl">
-            Unlock the true power of <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Generative AI</span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-neutral-300">
-            Discover, buy, and sell state-of-the-art text and image prompts engineered by top prompt architects. Save hundreds of hours and get perfect AI outputs instantly.
-          </p>
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link
-              href="/prompts"
-              className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-8 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"
-            >
-              Explore Prompts <ArrowRight size={18} />
-            </Link>
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 rounded-full border border-neutral-700 bg-white/5 px-8 py-3.5 text-base font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/10"
-            >
-              Become a Seller
-            </Link>
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            <span className="inline-flex rounded-full bg-indigo-500/10 px-3 py-1 text-sm font-semibold text-indigo-400 ring-1 ring-inset ring-indigo-500/20">
+              The #1 AI Prompt Marketplace
+            </span>
+            <h1 className="mt-8 text-5xl font-black tracking-tight text-white sm:text-7xl">
+              Unlock the true power of <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-white to-cyan-400 animate-gradient-x">
+                Generative AI
+              </span>
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-neutral-300">
+              Discover, buy, and sell state-of-the-art text and image prompts engineered by top prompt architects. Save hundreds of hours and get perfect AI outputs instantly.
+            </p>
+            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <Link
+                href="/prompts"
+                className="group inline-flex items-center gap-2 rounded-full bg-indigo-600 px-8 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 hover:shadow-indigo-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 active:scale-95"
+              >
+                Explore Prompts
+                <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+              </Link>
+              <Link
+                href="/register"
+                className="inline-flex items-center gap-2 rounded-full border border-neutral-700 bg-white/5 px-8 py-3.5 text-base font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/10 active:scale-95"
+              >
+                Become a Seller
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll Indicator for Visual Flow */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce opacity-50">
+          <div className="flex h-10 w-6 justify-center rounded-full border-2 border-neutral-700 p-1">
+            <div className="h-2 w-1 rounded-full bg-indigo-400"></div>
           </div>
         </div>
       </section>
