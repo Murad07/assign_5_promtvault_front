@@ -31,8 +31,8 @@ export default function Navbar() {
                         <Link href="/prompts" className="text-sm font-medium text-neutral-600 transition-colors hover:text-indigo-600 dark:text-neutral-300 dark:hover:text-indigo-400">
                             Explore Prompts
                         </Link>
-                        <Link href="/cart" className="text-sm font-medium text-neutral-600 transition-colors hover:text-indigo-600 dark:text-neutral-300 dark:hover:text-indigo-400">
-                            Pricing
+                        <Link href="/about" className="text-sm font-medium text-neutral-600 transition-colors hover:text-indigo-600 dark:text-neutral-300 dark:hover:text-indigo-400">
+                            About Us
                         </Link>
                     </nav>
                 </div>

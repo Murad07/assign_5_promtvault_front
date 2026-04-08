@@ -55,13 +55,18 @@ export default function Footer() {
                         <h3 className="text-sm font-semibold text-neutral-900 dark:text-white uppercase tracking-wider">Company</h3>
                         <ul className="mt-4 space-y-3">
                             <li>
-                                <Link href="/" className="text-sm text-neutral-500 hover:text-indigo-600 dark:text-neutral-400 dark:hover:text-indigo-400">
-                                    Home
+                                <Link href="/about" className="text-sm text-neutral-500 hover:text-indigo-600 dark:text-neutral-400 dark:hover:text-indigo-400 transition-colors">
+                                    About Us
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/register" className="text-sm text-neutral-500 hover:text-indigo-600 dark:text-neutral-400 dark:hover:text-indigo-400">
-                                    Join Marketplace
+                                <Link href="/contact" className="text-sm text-neutral-500 hover:text-indigo-600 dark:text-neutral-400 dark:hover:text-indigo-400 transition-colors">
+                                    Contact Us
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/help" className="text-sm text-neutral-500 hover:text-indigo-600 dark:text-neutral-400 dark:hover:text-indigo-400 transition-colors">
+                                    Help & Support
                                 </Link>
                             </li>
                         </ul>
