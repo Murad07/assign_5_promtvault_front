@@ -4,10 +4,20 @@ import { useState, Suspense } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Loader2, Search, Filter, ArrowRight, PackageOpen, Star, TrendingUp } from "lucide-react";
+import {
+    Loader2,
+    Search,
+    Filter,
+    ArrowRight,
+    PackageOpen,
+    Star,
+    TrendingUp,
+    RotateCcw,
+    DollarSign
+} from "lucide-react";
 
 const fetchPublicPrompts = async ({ pageParam = 1, queryKey }: any) => {
-    const [_key, { searchTerm, category, sortOrder }] = queryKey;
+    const [_key, { searchTerm, category, sortOrder, minPrice, maxPrice }] = queryKey;
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
     const params = new URLSearchParams({
@@ -15,7 +25,9 @@ const fetchPublicPrompts = async ({ pageParam = 1, queryKey }: any) => {
         limit: "10",
         searchTerm: searchTerm || "",
         category: category || "ALL",
-        sortOrder: sortOrder || "NEWEST"
+        sortOrder: sortOrder || "NEWEST",
+        minPrice: minPrice || "",
+        maxPrice: maxPrice || ""
     });
 
     const res = await fetch(`${API_URL}/prompts?${params.toString()}`, {
@@ -33,9 +45,17 @@ function PromptsInner() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<string>(queryCat || "ALL");
     const [sortOrder, setSortOrder] = useState<"NEWEST" | "PRICE_ASC" | "PRICE_DESC">("NEWEST");
+    const [minPrice, setMinPrice] = useState("");
+    const [maxPrice, setMaxPrice] = useState("");
 
     const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
-        queryKey: ["public-prompts", { searchTerm: searchQuery, category: selectedCategory, sortOrder }],
+        queryKey: ["public-prompts", {
+            searchTerm: searchQuery,
+            category: selectedCategory,
+            sortOrder,
+            minPrice,
+            maxPrice
+        }],
         queryFn: fetchPublicPrompts,
         initialPageParam: 1,
         getNextPageParam: (lastPage: any) => {
@@ -46,8 +66,15 @@ function PromptsInner() {
         }
     });
 
-    const categories = ["ALL", "IMAGES", "MARKETING", "CODING", "WRITING"];
+    const resetFilters = () => {
+        setSearchQuery("");
+        setSelectedCategory("ALL");
+        setSortOrder("NEWEST");
+        setMinPrice("");
+        setMaxPrice("");
+    };
 
+    const categories = ["ALL", "IMAGES", "MARKETING", "CODING", "WRITING"];
     const filteredPrompts = data?.pages.flatMap((page: any) => page.data) || [];
 
     return (
@@ -66,29 +93,45 @@ function PromptsInner() {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-                {/* Search & Filters Bar */}
-                <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-xl border border-neutral-200 shadow-sm dark:bg-neutral-900 dark:border-neutral-800">
 
-                    <div className="relative w-full md:max-w-md flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
-                        <input
-                            type="text"
-                            placeholder="Search by title or description..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-neutral-950 dark:border-neutral-700 dark:text-white"
-                        />
+                {/* Search & Filters Bar */}
+                <div className="flex flex-col gap-4 bg-white p-4 rounded-xl border border-neutral-200 shadow-sm dark:bg-neutral-900 dark:border-neutral-800">
+                    <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                        <div className="relative w-full md:max-w-md flex-1">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                            <input
+                                type="text"
+                                placeholder="Search by title or description..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-neutral-950 dark:border-neutral-700 dark:text-white"
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-2 relative w-full md:w-auto">
+                            <Filter className="h-5 w-5 text-neutral-400 absolute left-3 pointer-events-none" />
+                            <select
+                                value={sortOrder}
+                                onChange={(e) => setSortOrder(e.target.value as any)}
+                                className="w-full md:w-auto pl-10 pr-8 py-2.5 rounded-lg border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-neutral-950 dark:border-neutral-700 dark:text-white appearance-none cursor-pointer"
+                            >
+                                <option value="NEWEST">Newest First</option>
+                                <option value="PRICE_ASC">Price: Low to High</option>
+                                <option value="PRICE_DESC">Price: High to Low</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div className="flex w-full md:w-auto items-center gap-3 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
-                        <div className="flex items-center gap-2 bg-neutral-100 p-1 rounded-lg dark:bg-neutral-800">
+                    <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+                        {/* Categories List */}
+                        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 hide-scrollbar flex-1">
                             {categories.map((cat) => (
                                 <button
                                     key={cat}
                                     onClick={() => setSelectedCategory(cat)}
-                                    className={`px-4 py-1.5 text-sm font-medium rounded-md whitespace-nowrap transition-colors ${selectedCategory === cat
-                                        ? "bg-white text-indigo-600 shadow-sm dark:bg-neutral-700 dark:text-indigo-400"
-                                        : "text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+                                    className={`px-4 py-1.5 text-xs font-bold rounded-full whitespace-nowrap transition-all uppercase tracking-wider ${selectedCategory === cat
+                                        ? "bg-indigo-600 text-white shadow-md shadow-indigo-200 dark:shadow-none"
+                                        : "text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
                                         }`}
                                 >
                                     {cat === "ALL" ? "All Categories" : cat}
@@ -96,18 +139,39 @@ function PromptsInner() {
                             ))}
                         </div>
 
-                        <div className="flex items-center gap-2 relative">
-                            <Filter className="h-5 w-5 text-neutral-400 absolute left-3 pointer-events-none" />
-                            <select
-                                value={sortOrder}
-                                onChange={(e) => setSortOrder(e.target.value as any)}
-                                className="pl-10 pr-8 py-2.5 rounded-lg border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-neutral-950 dark:border-neutral-700 dark:text-white appearance-none cursor-pointer"
-                            >
-                                <option value="NEWEST">Newest First</option>
-                                <option value="PRICE_ASC">Price: Low to High</option>
-                                <option value="PRICE_DESC">Price: High to Low</option>
-                            </select>
+                        {/* Price Filters */}
+                        <div className="flex items-center gap-2">
+                            <div className="relative max-w-[100px]">
+                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">$</span>
+                                <input
+                                    type="number"
+                                    placeholder="Min"
+                                    value={minPrice}
+                                    onChange={(e) => setMinPrice(e.target.value)}
+                                    className="w-full pl-6 pr-2 py-2 text-xs rounded-lg border border-neutral-200 dark:bg-neutral-950 dark:border-neutral-700 dark:text-white focus:ring-1 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <span className="text-neutral-400 text-xs">-</span>
+                            <div className="relative max-w-[100px]">
+                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">$</span>
+                                <input
+                                    type="number"
+                                    placeholder="Max"
+                                    value={maxPrice}
+                                    onChange={(e) => setMaxPrice(e.target.value)}
+                                    className="w-full pl-6 pr-2 py-2 text-xs rounded-lg border border-neutral-200 dark:bg-neutral-950 dark:border-neutral-700 dark:text-white focus:ring-1 focus:ring-indigo-500"
+                                />
+                            </div>
                         </div>
+
+                        {/* Reset Toggle */}
+                        <button
+                            onClick={resetFilters}
+                            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-neutral-500 hover:text-indigo-600 transition-colors border border-dashed border-neutral-200 rounded-lg hover:border-indigo-300 dark:border-neutral-700 font-sans"
+                        >
+                            <RotateCcw size={14} />
+                            Reset
+                        </button>
                     </div>
                 </div>
 
@@ -164,7 +228,6 @@ function PromptsInner() {
                                 key={prompt.id}
                                 className="group flex flex-col bg-white rounded-2xl border border-neutral-200 shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden dark:bg-neutral-900 dark:border-neutral-800"
                             >
-                                {/* Dynamic Media Preview Rendering */}
                                 <div className="aspect-[4/3] w-full bg-neutral-100 dark:bg-neutral-800 relative flex items-center justify-center overflow-hidden border-b border-neutral-200 dark:border-neutral-800">
                                     {prompt.outputPreview ? (
                                         (() => {
@@ -178,7 +241,6 @@ function PromptsInner() {
                                             } else if (isVideo) {
                                                 return <video src={url} className="object-cover w-full h-full" muted loop playsInline />;
                                             } else if (isDrive) {
-                                                // Check for view/preview tags to embed iframe safely, otherwise show logo.
                                                 const embedUrl = url.replace('/view', '/preview');
                                                 return <iframe src={embedUrl} className="w-full h-full border-0 pointer-events-none" />;
                                             } else {
