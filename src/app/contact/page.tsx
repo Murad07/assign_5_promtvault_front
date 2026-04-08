@@ -1,19 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, Phone, MapPin, Send, MessageSquare, ShieldCheck, Loader2 } from "lucide-react";
+import { Mail, Phone, MapPin, Send, ShieldCheck, Loader2 } from "lucide-react";
+import { fetchWithAuth } from "@/lib/api";
 
 export default function ContactPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [formData, setFormData] = useState({
+        name: "",
+        email: "",
+        subject: "General Inquiry",
+        message: ""
+    });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-        setTimeout(() => {
-            setIsSubmitting(false);
+        try {
+            await fetchWithAuth("/contact", {
+                method: "POST",
+                body: JSON.stringify(formData),
+            });
             setSubmitted(true);
-        }, 1500);
+        } catch (error) {
+            console.error("Failed to send message", error);
+            alert("Failed to send message. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -61,7 +76,6 @@ export default function ContactPage() {
                             <div>
                                 <h3 className="text-lg font-bold text-neutral-900 dark:text-white">Our Headquarters</h3>
                                 <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">Dhaka, Bangladesh.</p>
-                                <p className="mt-2 text-indigo-600 dark:text-indigo-400 font-bold underline cursor-pointer">View on Google Maps</p>
                             </div>
                         </div>
                     </div>
@@ -74,7 +88,7 @@ export default function ContactPage() {
                                     <ShieldCheck className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
                                 </div>
                                 <h3 className="text-xl font-black text-neutral-900 dark:text-white">Message Received!</h3>
-                                <p className="text-sm text-neutral-600 dark:text-neutral-400">Thank you for reaching out. We'll get back to you shortly.</p>
+                                <p className="text-sm text-neutral-600 dark:text-neutral-400">Thank you for reaching out. We've saved your message to our vault.</p>
                                 <button
                                     onClick={() => setSubmitted(false)}
                                     className="text-sm font-bold text-indigo-600 hover:underline"
@@ -91,6 +105,8 @@ export default function ContactPage() {
                                         required
                                         className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
                                         placeholder="Enter your name"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                     />
                                 </div>
                                 <div>
@@ -100,11 +116,17 @@ export default function ContactPage() {
                                         required
                                         className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
                                         placeholder="email@example.com"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-black uppercase tracking-widest text-neutral-500 dark:text-neutral-400 mb-2">Subject</label>
-                                    <select className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white">
+                                    <select
+                                        className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
+                                        value={formData.subject}
+                                        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                                    >
                                         <option>General Inquiry</option>
                                         <option>Become a Seller</option>
                                         <option>Technical Support</option>
@@ -118,6 +140,8 @@ export default function ContactPage() {
                                         required
                                         className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
                                         placeholder="How can we help you?"
+                                        value={formData.message}
+                                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                                     ></textarea>
                                 </div>
                                 <button

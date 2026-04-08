@@ -4,6 +4,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { fetchWithAuth } from "@/lib/api";
 import {
     LayoutDashboard,
     Users,
@@ -14,7 +16,8 @@ import {
     Menu,
     X,
     Wallet,
-    User
+    User,
+    MessageSquare
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -23,6 +26,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const router = useRouter();
     const pathname = usePathname();
     const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+    // Fetch unread messages count for Admin
+    const { data: messages } = useQuery({
+        queryKey: ["admin-messages-count"],
+        queryFn: async () => {
+            const res = await fetchWithAuth("/contact");
+            return res.data;
+        },
+        enabled: user?.role === "ADMIN",
+        refetchInterval: 30000, // Refresh every 30 seconds
+    });
+
+    const unreadCount = messages?.filter((m: any) => !m.isRead).length || 0;
 
     useEffect(() => {
         if (!isLoading && !user) {
@@ -52,6 +68,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 { name: "All Orders", href: "/dashboard/orders", icon: ShoppingCart },
                 { name: "Manage Prompts", href: "/dashboard/prompts", icon: FileCode2 },
                 { name: "Payout Transfers", href: "/dashboard/withdrawals", icon: Wallet },
+                { name: "Support Messages", href: "/dashboard/messages", icon: MessageSquare, badge: unreadCount },
             ];
         }
 
@@ -113,18 +130,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                     key={item.href}
                                     href={item.href}
                                     onClick={() => setIsMobileOpen(false)}
-                                    className={`group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${isActive
+                                    className={`group flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${isActive
                                         ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"
                                         : "text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800/50"
                                         }`}
                                 >
-                                    <Icon
-                                        className={`mr-3 h-5 w-5 flex-shrink-0 ${isActive
-                                            ? "text-indigo-600 dark:text-indigo-400"
-                                            : "text-neutral-400 group-hover:text-neutral-500 dark:text-neutral-500"
-                                            }`}
-                                    />
-                                    {item.name}
+                                    <div className="flex items-center">
+                                        <Icon
+                                            className={`mr-3 h-5 w-5 flex-shrink-0 ${isActive
+                                                ? "text-indigo-600 dark:text-indigo-400"
+                                                : "text-neutral-400 group-hover:text-neutral-500 dark:text-neutral-500"
+                                                }`}
+                                        />
+                                        {item.name}
+                                    </div>
+                                    {(item as any).badge > 0 && (
+                                        <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-indigo-600 px-1.5 text-[10px] font-black text-white shadow-sm ring-2 ring-white dark:ring-neutral-950 animate-in zoom-in duration-300">
+                                            {(item as any).badge}
+                                        </span>
+                                    )}
                                 </Link>
                             );
                         })}
