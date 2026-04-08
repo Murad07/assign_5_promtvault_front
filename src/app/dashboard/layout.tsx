@@ -13,7 +13,8 @@ import {
     LogOut,
     Menu,
     X,
-    Wallet
+    Wallet,
+    User
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -41,6 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const getNavLinks = () => {
         const baseLinks = [
             { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
+            { name: "My Profile", href: "/dashboard/profile", icon: User },
         ];
 
         if (user.role === "ADMIN") {

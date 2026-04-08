@@ -109,12 +109,12 @@ export default function UserMenu() {
                         My Orders
                     </Link>
                     <Link
-                        href="/dashboard"
+                        href="/dashboard/profile"
                         onClick={() => setIsOpen(false)}
                         className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
                     >
-                        <Settings size={16} className="text-neutral-400" />
-                        Settings
+                        <User size={16} className="text-neutral-400" />
+                        My Profile
                     </Link>
                 </div>
 

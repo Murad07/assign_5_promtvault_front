@@ -8,6 +8,8 @@ export interface AuthUser {
     email: string;
     name: string;
     role: 'ADMIN' | 'SELLER' | 'BUYER';
+    createdAt: string;
+    updatedAt?: string;
 }
 
 interface AuthContextType {
