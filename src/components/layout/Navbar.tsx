@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { LogIn, UserPlus, ShoppingCart } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import UserMenu from "./UserMenu";
 
 export default function Navbar() {
     const pathname = usePathname();
@@ -49,12 +50,7 @@ export default function Navbar() {
                                     )}
                                 </Link>
                             ) : null}
-                            <Link
-                                href="/dashboard"
-                                className="flex items-center gap-2 rounded-full border border-neutral-200 px-4 py-1.5 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
-                            >
-                                Dashboard
-                            </Link>
+                            <UserMenu />
                         </>
                     ) : (
                         <>
