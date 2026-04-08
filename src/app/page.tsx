@@ -260,6 +260,129 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* 5. STATISTICS SECTION */}
+      <section className="bg-indigo-600 px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-4 text-center">
+            {[
+              { label: "Prompts Sold", value: "85K+" },
+              { label: "Active Sellers", value: "1,200+" },
+              { label: "Happy Customers", value: "24K+" },
+              { label: "Time Saved (Avg)", value: "45hrs/mo" }
+            ].map((stat, i) => (
+              <div key={i}>
+                <p className="text-3xl font-black text-white md:text-5xl">{stat.value}</p>
+                <p className="mt-2 text-sm font-medium text-indigo-100 uppercase tracking-widest">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 6. WHY CHOOSE PROMPTVAULT (HIGHLIGHTS) */}
+      <section className="bg-white px-4 py-24 sm:px-6 lg:px-8 dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-3xl font-black tracking-tight text-neutral-900 dark:text-white sm:text-4xl">
+                The standard for the <span className="text-indigo-600 dark:text-indigo-400">Prompt Engineering</span> economy.
+              </h2>
+              <p className="mt-6 text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                PromptVault isn't just a directory; it's a quality-controlled ecosystem. We don't just host prompts; we ensure every single mechanical structure is tested for reliability and output fidelity.
+              </p>
+              <div className="mt-10 space-y-4">
+                {[
+                  "Verified Seller Program with manual auditing.",
+                  "Zero-latency instant delivery after checkout.",
+                  "Multi-model support (Claude, GPT, Gemini, Midjourney).",
+                  "Secure infrastructure with Stripe and Prisma security."
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <CheckCircle2 className="text-emerald-500 h-5 w-5 shrink-0" />
+                    <span className="text-neutral-700 dark:text-neutral-300 font-medium">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="relative aspect-video rounded-3xl bg-neutral-100 p-8 overflow-hidden dark:bg-neutral-800 shadow-2xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 animate-pulse"></div>
+              <pre className="text-xs font-mono text-indigo-600 dark:text-indigo-300 pointer-events-none">
+                {`{
+  "prompt_id": "pv_9832",
+  "fidelity": "99.8%",
+  "architecture": "Mechanical Deep-Link",
+  "verified": true,
+  "output_check": "passed",
+  "security_scan": "clean"
+}`}
+              </pre>
+              <div className="absolute bottom-12 left-12 right-12 h-1 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+                <div className="h-full w-2/3 bg-indigo-500 animate-[loading_2s_ease-in-out_infinite]"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. FAQ SECTION */}
+      <section className="bg-neutral-50 px-4 py-24 sm:px-6 lg:px-8 dark:bg-neutral-950">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-3xl font-black text-center text-neutral-900 dark:text-white mb-16">Frequently Asked Questions</h2>
+          <div className="space-y-6">
+            {[
+              { q: "Can I use these prompts for commercial work?", a: "Yes, once you buy a prompt framework, you own the usage rights to the outputs generated for any project, commercial or personal." },
+              { q: "What if the prompt doesn't work as advertised?", a: "Every prompt goes through a verification check. If the mechanical structure is faulty, we provide a full credit refund within 24 hours." },
+              { q: "How do I receive the prompt after payment?", a: "After a successful Stripe checkout, the prompt structure will instantly appear in your Buyer Dashboard under 'My Purchases'." }
+            ].map((item, i) => (
+              <div key={i} className="rounded-2xl bg-white p-6 shadow-sm dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+                <h3 className="font-bold text-neutral-900 dark:text-white mb-2">{item.q}</h3>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400">{item.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 8. NEWSLETTER SECTION */}
+      <section className="bg-white px-4 py-24 sm:px-6 lg:px-8 dark:bg-neutral-900">
+        <div className="mx-auto max-w-5xl rounded-3xl bg-neutral-950 px-8 py-16 text-center overflow-hidden relative border border-neutral-800">
+          <div className="absolute top-0 right-0 h-40 w-40 bg-indigo-600/20 blur-[100px]"></div>
+          <div className="relative z-10">
+            <h2 className="text-3xl font-black text-white sm:text-4xl">Get the week's best prompts.</h2>
+            <p className="mt-4 text-neutral-400 mx-auto max-w-xl">
+              Join 12,000+ prompt engineers receiving our weekly breakdown of meta-prompts and output variations.
+            </p>
+            <div className="mt-10 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="flex-1 rounded-full bg-white/5 border border-neutral-700 px-6 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium"
+              />
+              <button className="rounded-full bg-indigo-600 px-8 py-3 font-bold text-white transition-all hover:bg-indigo-500 active:scale-95 shadow-lg shadow-indigo-500/20">
+                Join Community
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 9. FINAL CTA SECTION */}
+      <section className="px-4 py-24 sm:px-6 lg:px-8 text-center relative overflow-hidden bg-neutral-50 dark:bg-neutral-950">
+        <div className="mx-auto max-w-3xl relative z-10">
+          <h2 className="text-4xl font-black text-neutral-900 dark:text-white sm:text-6xl">Ready to automate your creative process?</h2>
+          <p className="mt-6 text-lg text-neutral-600 dark:text-neutral-400">
+            Join the thousand of creators building the future of generative media on PromptVault.
+          </p>
+          <div className="mt-12 flex flex-col sm:flex-row justify-center gap-4">
+            <Link href="/register" className="inline-flex items-center justify-center rounded-full bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 px-10 py-4 font-bold text-lg hover:scale-105 transition-all">
+              Start Selling Today
+            </Link>
+            <Link href="/prompts" className="inline-flex items-center justify-center rounded-full border border-neutral-300 dark:border-neutral-700 px-10 py-4 font-bold text-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-all">
+              Browse Marketplace
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
