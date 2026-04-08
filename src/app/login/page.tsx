@@ -89,17 +89,40 @@ export default function LoginPage() {
                         </div>
                     </div>
 
-                    <div>
+                    <div className="space-y-4">
                         <button
                             type="submit"
                             disabled={loginMutation.isPending || !email || !password}
-                            className="group relative flex w-full justify-center rounded-lg border border-transparent bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 dark:focus:ring-offset-neutral-900"
+                            className="group relative flex w-full justify-center rounded-lg border border-transparent bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 dark:focus:ring-offset-neutral-900 shadow-lg shadow-indigo-500/25"
                         >
                             {loginMutation.isPending ? (
                                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                             ) : (
                                 "Sign in"
                             )}
+                        </button>
+
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t border-neutral-200 dark:border-neutral-800"></span>
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-white px-2 text-neutral-500 dark:bg-neutral-950 dark:text-neutral-400 font-bold">Quick Access</span>
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setEmail("roni@gmail.com");
+                                setPassword("roni123");
+                                // We use a small timeout to ensure state is captured by the closure if needed, 
+                                // but mutationFn reads from state at execution time.
+                                setTimeout(() => loginMutation.mutate(), 100);
+                            }}
+                            className="flex w-full justify-center rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-bold text-neutral-700 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:hover:bg-neutral-700 transition-all active:scale-95"
+                        >
+                            Demo Login (Roni)
                         </button>
                     </div>
                 </form>
