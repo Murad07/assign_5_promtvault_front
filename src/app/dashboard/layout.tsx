@@ -15,6 +15,7 @@ import {
     X,
     Wallet
 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { user, isLoading, logout } = useAuth();
@@ -138,13 +139,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                     {user.email}
                                 </p>
                             </div>
-                            <button
-                                onClick={logout}
-                                className="ml-auto rounded-md p-2 text-neutral-500 hover:bg-red-50 hover:text-red-600 dark:text-neutral-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors"
-                                title="Log out"
-                            >
-                                <LogOut size={20} />
-                            </button>
+                            <div className="flex items-center gap-1">
+                                <ThemeToggle />
+                                <button
+                                    onClick={logout}
+                                    className="rounded-md p-2 text-neutral-500 hover:bg-red-50 hover:text-red-600 dark:text-neutral-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors"
+                                    title="Log out"
+                                >
+                                    <LogOut size={20} />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

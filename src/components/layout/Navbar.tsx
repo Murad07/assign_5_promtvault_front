@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { LogIn, UserPlus, ShoppingCart } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Navbar() {
     const pathname = usePathname();
@@ -73,6 +74,7 @@ export default function Navbar() {
                             </Link>
                         </>
                     )}
+                    <ThemeToggle />
                 </div>
             </div>
         </header>

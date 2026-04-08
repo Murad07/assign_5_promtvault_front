@@ -23,6 +23,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${outfit.variable} opacity-100 h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
