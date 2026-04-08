@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '../context/AuthContext';
 import { CartProvider } from '../context/CartContext';
 import { useState } from 'react';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 import { ThemeProvider } from './theme-provider';
 
@@ -18,19 +19,21 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     }));
 
     return (
-        <QueryClientProvider client={queryClient}>
-            <ThemeProvider
-                attribute="class"
-                defaultTheme="system"
-                enableSystem
-                disableTransitionOnChange
-            >
-                <AuthProvider>
-                    <CartProvider>
-                        {children}
-                    </CartProvider>
-                </AuthProvider>
-            </ThemeProvider>
-        </QueryClientProvider>
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
+            <QueryClientProvider client={queryClient}>
+                <ThemeProvider
+                    attribute="class"
+                    defaultTheme="system"
+                    enableSystem
+                    disableTransitionOnChange
+                >
+                    <AuthProvider>
+                        <CartProvider>
+                            {children}
+                        </CartProvider>
+                    </AuthProvider>
+                </ThemeProvider>
+            </QueryClientProvider>
+        </GoogleOAuthProvider>
     );
 }
